@@ -1,0 +1,146 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { formatMoney } from '@/lib/format'
+import { rememberOrder } from '@/lib/loyalty'
+import { useNotificationPermission, useReadyBuzzer } from '@/lib/use-ready-buzzer'
+import type { OrderLineItem, OrderStatus } from '@/lib/types'
+
+interface TrackedOrder {
+  id: string
+  order_number: number
+  customer_name: string
+  items: OrderLineItem[]
+  total_pence: number
+  status: OrderStatus
+  vendor: { slug: string; name: string; emoji: string; currency: string }
+}
+
+const STATUS_LABEL: Record<OrderStatus, string> = {
+  pending: 'Awaiting payment…',
+  paid: 'In the queue',
+  preparing: 'Being prepared 🔥',
+  ready: 'Ready — collect now! 🎉',
+  collected: 'Collected 😋',
+  cancelled: 'Cancelled',
+}
+
+const STATUS_STYLES: Record<OrderStatus, string> = {
+  pending: 'bg-stone-100 text-stone-600',
+  paid: 'bg-blue-100 text-blue-800',
+  preparing: 'bg-amber-100 text-amber-800',
+  ready: 'bg-green-500 text-white',
+  collected: 'bg-stone-100 text-stone-500',
+  cancelled: 'bg-red-100 text-red-700',
+}
+
+const DONE: OrderStatus[] = ['collected', 'cancelled']
+
+export default function MultiTracker({ orderIds }: { orderIds: string[] }) {
+  const [orders, setOrders] = useState<TrackedOrder[]>([])
+  const { permission, request } = useNotificationPermission()
+
+  const refresh = useCallback(async () => {
+    const results = await Promise.all(
+      orderIds.map(async (id) => {
+        try {
+          const res = await fetch(`/api/orders/${id}`, { cache: 'no-store' })
+          return res.ok ? ((await res.json()) as TrackedOrder) : null
+        } catch {
+          return null
+        }
+      })
+    )
+    setOrders(results.filter((order): order is TrackedOrder => order !== null))
+  }, [orderIds])
+
+  useEffect(() => {
+    const initial = setTimeout(refresh, 0)
+    const interval = setInterval(refresh, 4000)
+    return () => {
+      clearTimeout(initial)
+      clearInterval(interval)
+    }
+  }, [refresh])
+
+  useEffect(() => {
+    for (const order of orders) rememberOrder(order.id, order.vendor.slug)
+  }, [orders])
+
+  const readyOrders = orders.filter((order) => order.status === 'ready')
+  useReadyBuzzer(
+    readyOrders.length > 0,
+    readyOrders.map((order) => `${order.vendor.name} order #${order.order_number}`).join(', ')
+  )
+
+  const allDone = orders.length > 0 && orders.every((order) => DONE.includes(order.status))
+  const anyActive = orders.some((order) => !DONE.includes(order.status))
+
+  return (
+    <div
+      className={`mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 py-8 text-stone-900 transition-colors ${
+        readyOrders.length > 0 ? 'animate-pulse bg-green-50' : 'bg-stone-50'
+      }`}
+    >
+      <h1 className="text-2xl font-black tracking-tight">Your orders</h1>
+      <p className="mt-1 text-stone-500">
+        {readyOrders.length > 0
+          ? 'Food is ready — head to the counter!'
+          : allDone
+            ? 'All done. Enjoy!'
+            : 'Keep this page open — it buzzes when your food is ready.'}
+      </p>
+
+      {anyActive && permission === 'default' && (
+        <button
+          onClick={request}
+          className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800"
+        >
+          🔔 Notify me when it&apos;s ready
+        </button>
+      )}
+
+      <div className="mt-5 space-y-3">
+        {orders.length === 0 && <p className="text-stone-400">Loading your orders…</p>}
+        {orders.map((order) => (
+          <div
+            key={order.id}
+            className={`rounded-2xl border bg-white p-5 shadow-sm ${
+              order.status === 'ready' ? 'border-green-400 ring-2 ring-green-300' : 'border-stone-200'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm text-stone-500">
+                  {order.vendor.emoji} {order.vendor.name}
+                </p>
+                <p className="text-3xl font-black text-amber-600">#{order.order_number}</p>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1.5 text-xs font-bold ${STATUS_STYLES[order.status]}`}
+              >
+                {STATUS_LABEL[order.status]}
+              </span>
+            </div>
+            <ul className="mt-3 space-y-0.5 text-sm text-stone-600">
+              {order.items.map((item) => (
+                <li key={item.id}>
+                  {item.quantity} × {item.name}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-sm font-semibold">
+              {formatMoney(order.total_pence, order.vendor.currency)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 flex justify-center gap-6 text-sm font-medium text-amber-700">
+        <Link href="/market">← Back to market</Link>
+        <Link href="/stamps">My stamps</Link>
+      </div>
+    </div>
+  )
+}
