@@ -17,15 +17,25 @@ interface CreatedStall {
   adminToken: string
   menuPath: string
   kitchenPath: string
+  marketName: string | null
+  marketPath: string | null
   qrDataUrl: string | null
+}
+
+export interface MarketOption {
+  id: string
+  name: string
 }
 
 const EMOJI_OPTIONS = ['🍜', '🥟', '🌮', '🍔', '🍕', '🥙', '🍛', '🍩', '☕', '🍦', '🥘', '🍗']
 
-export default function OnboardWizard() {
+export default function OnboardWizard({ markets }: { markets: MarketOption[] }) {
   const [step, setStep] = useState<'details' | 'confirm' | 'done'>('details')
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🍜')
+  // '' = independent stall, 'new' = creating a market, otherwise a market id.
+  const [marketChoice, setMarketChoice] = useState('')
+  const [newMarketName, setNewMarketName] = useState('')
   const [items, setItems] = useState<DraftItem[]>([])
   const [extracting, setExtracting] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -84,7 +94,14 @@ export default function OnboardWizard() {
       const res = await fetch('/api/onboard/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), emoji, currency: 'GBP', items: validItems }),
+        body: JSON.stringify({
+          name: name.trim(),
+          emoji,
+          currency: 'GBP',
+          items: validItems,
+          marketId: marketChoice && marketChoice !== 'new' ? marketChoice : undefined,
+          marketName: marketChoice === 'new' ? newMarketName.trim() : undefined,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Could not create your stall')
@@ -140,6 +157,49 @@ export default function OnboardWizard() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <span className="mb-1 block text-sm font-medium text-midnight/80">
+              Where are you trading? <span className="text-midnight/50">(optional)</span>
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {markets.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setMarketChoice(marketChoice === option.id ? '' : option.id)}
+                  className={`rounded-xl border px-3 py-2 text-sm font-medium ${
+                    marketChoice === option.id
+                      ? 'border-ink bg-paper text-ink ring-2 ring-ink/20'
+                      : 'border-line bg-card'
+                  }`}
+                >
+                  📍 {option.name}
+                </button>
+              ))}
+              <button
+                onClick={() => setMarketChoice(marketChoice === 'new' ? '' : 'new')}
+                className={`rounded-xl border px-3 py-2 text-sm font-medium ${
+                  marketChoice === 'new'
+                    ? 'border-ink bg-paper text-ink ring-2 ring-ink/20'
+                    : 'border-dashed border-line-strong bg-card'
+                }`}
+              >
+                + New market
+              </button>
+            </div>
+            {marketChoice === 'new' && (
+              <input
+                value={newMarketName}
+                onChange={(e) => setNewMarketName(e.target.value)}
+                placeholder="e.g. Borough Market"
+                maxLength={80}
+                className="mt-2 w-full rounded-xl border border-line-strong bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
+              />
+            )}
+            <p className="mt-1 text-sm text-midnight/50">
+              Stalls in the same market share one customer basket and one payment.
+            </p>
           </div>
 
           <div className={`space-y-3 ${name.trim() ? '' : 'pointer-events-none opacity-40'}`}>
@@ -312,6 +372,15 @@ export default function OnboardWizard() {
                 {created.kitchenPath}
               </Link>
             </p>
+            {created.marketPath && (
+              <p className="mt-2 text-sm">
+                <span className="font-medium">{created.marketName}:</span>{' '}
+                <Link href={created.marketPath} className="break-all text-ink underline">
+                  {created.marketPath}
+                </Link>{' '}
+                · you&apos;re on the market menu too.
+              </p>
+            )}
             <p className="mt-3 rounded-lg bg-paper px-3 py-2 text-sm text-ink">
               ⚠️ Save the kitchen link somewhere safe — it&apos;s your only way to manage orders.
               Anyone with it can run your stall.

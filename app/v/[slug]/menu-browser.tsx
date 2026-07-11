@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatMoney } from '@/lib/format'
-import { stallIconPath } from '@/lib/stall-icon'
+import { stallArtSrc } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import type { MenuItem } from '@/lib/types'
 
@@ -83,11 +83,12 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
       <header className="sticky top-0 z-10 border-b border-line bg-paper/95 px-5 py-4 backdrop-blur">
         <div className="flex items-center gap-3">
           <Image
-            src={stallIconPath(vendor.emoji, vendor.name)}
+            src={stallArtSrc(vendor.slug)}
             alt=""
             width={56}
             height={56}
-            className="h-14 w-14 shrink-0"
+            unoptimized
+            className="h-14 w-14 shrink-0 object-contain"
           />
           <div>
             <h1 className="font-display text-3xl leading-none text-ink">

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createOrder, setOrderPaymentId, updateOrderStatus } from '@/lib/data'
+import { createOrder, getMarketBySlug, setOrderPaymentId, updateOrderStatus } from '@/lib/data'
 import { pool } from '@/lib/db'
 import { toMollieAmount } from '@/lib/format'
 import { getBaseUrl, getMollieClient, isMollieConfigured } from '@/lib/mollie'
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   // Name is optional — the order number is the real claim ticket.
   const customerName =
     (typeof body?.customerName === 'string' ? body.customerName.trim().slice(0, 60) : '') || 'Guest'
+  const marketSlug = typeof body?.marketSlug === 'string' ? body.marketSlug : null
   const rawItems = Array.isArray(body?.items) ? body.items : []
 
   if (rawItems.length === 0 || rawItems.length > MAX_LINE_ITEMS) {
@@ -45,6 +46,16 @@ export async function POST(req: Request) {
   const { rows: vendors } = await pool.query<Vendor>(`SELECT * FROM vendors WHERE id = ANY($1)`, [
     [...new Set(menuItems.map((item) => item.vendor_id))],
   ])
+  // A market-scoped basket may only contain that market's stalls.
+  if (marketSlug) {
+    const market = await getMarketBySlug(marketSlug)
+    if (!market || vendors.some((vendor) => vendor.market_id !== market.id)) {
+      return NextResponse.json(
+        { error: 'Some items are not from this market. Please refresh the menu.' },
+        { status: 400 }
+      )
+    }
+  }
   const currencies = new Set(vendors.map((v) => v.currency))
   if (currencies.size > 1) {
     return NextResponse.json(

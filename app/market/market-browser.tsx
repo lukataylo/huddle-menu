@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { formatMoney } from '@/lib/format'
-import { stallIconPath } from '@/lib/stall-icon'
+import { stallArtSrc } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import type { MenuItem } from '@/lib/types'
 
@@ -21,7 +21,13 @@ interface Stall {
   items: MenuItem[]
 }
 
-export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
+export default function MarketBrowser({
+  stalls,
+  market,
+}: {
+  stalls: Stall[]
+  market?: { slug: string; name: string }
+}) {
   const router = useRouter()
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [view, setView] = useState<'menu' | 'basket'>('menu')
@@ -66,6 +72,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: customerName.trim(),
+          marketSlug: market?.slug,
           items: basket.map(({ item, quantity }) => ({ id: item.id, quantity })),
         }),
       })
@@ -127,10 +134,18 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
       <header className="sticky top-0 z-10 border-b border-line bg-paper/95 px-5 py-4 backdrop-blur">
         <div className="flex items-center gap-2">
           <Image src="/icons/market.png" alt="" width={40} height={40} className="h-10 w-10" />
-          <h1 className="font-display text-3xl leading-none text-ink">HUDDLE MARKET</h1>
+          <h1 className="font-display text-3xl leading-none text-ink">
+            {market ? market.name.toUpperCase() : 'HUDDLE MARKET'}
+          </h1>
         </div>
         <p className="text-sm text-midnight/60">
-          One basket, every stall · <Link href="/stamps" className="font-medium text-ink">My stamps</Link>
+          One basket, every stall ·{' '}
+          <Link href="/stamps" className="font-medium text-ink">My stamps</Link>
+          {market && (
+            <>
+              {' '}· <Link href={`/m/${market.slug}/qr`} className="font-medium text-ink">Market QR</Link>
+            </>
+          )}
         </p>
       </header>
 
@@ -143,11 +158,12 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
             <section key={vendor.slug} className="mb-8">
               <h2 className="mb-2 flex items-center gap-2 font-display text-2xl text-ink">
                 <Image
-                  src={stallIconPath(vendor.emoji, vendor.name)}
+                  src={stallArtSrc(vendor.slug)}
                   alt=""
                   width={44}
                   height={44}
-                  className="h-11 w-11 shrink-0"
+                  unoptimized
+                  className="h-11 w-11 shrink-0 object-contain"
                 />
                 {vendor.name.toUpperCase()}
               </h2>

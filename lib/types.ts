@@ -1,3 +1,10 @@
+export interface Market {
+  id: string
+  slug: string
+  name: string
+  created_at: string
+}
+
 export interface Vendor {
   id: string
   slug: string
@@ -6,6 +13,7 @@ export interface Vendor {
   emoji: string
   currency: string
   next_order_number: number
+  market_id: string | null
   created_at: string
 }
 

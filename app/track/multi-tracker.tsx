@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatMoney } from '@/lib/format'
-import { stallIconPath } from '@/lib/stall-icon'
+import { stallArtSrc } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import { useNotificationPermission, useReadyBuzzer } from '@/lib/use-ready-buzzer'
 import BottomNav from '../bottom-nav'
@@ -116,11 +116,12 @@ export default function MultiTracker({ orderIds }: { orderIds: string[] }) {
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Image
-                  src={stallIconPath(order.vendor.emoji, order.vendor.name)}
+                  src={stallArtSrc(order.vendor.slug)}
                   alt=""
                   width={56}
                   height={56}
-                  className="h-14 w-14 shrink-0"
+                  unoptimized
+                  className="h-14 w-14 shrink-0 object-contain"
                 />
                 <div>
                   <p className="text-sm font-bold text-midnight/60">{order.vendor.name}</p>

@@ -1,13 +1,14 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { listVendors } from '@/lib/data'
-import { stallIconPath } from '@/lib/stall-icon'
+import { listMarkets, listVendors } from '@/lib/data'
+import { stallArtSrc } from '@/lib/stall-icon'
 import BottomNav from './bottom-nav'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const vendors = await listVendors().catch(() => [])
+  const markets = await listMarkets().catch(() => [])
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg md:max-w-3xl flex-col bg-paper px-6 pb-28 pt-10 text-midnight">
@@ -17,6 +18,38 @@ export default async function Home() {
           Discover amazing food stalls — scan, order, skip the queue.
         </p>
       </header>
+
+      {markets.length > 0 && (
+        <section className="mt-8">
+          <h2 className="font-display text-xl text-ink">MARKETS</h2>
+          <ul className="mt-3 space-y-3">
+            {markets.map((market) => (
+              <li key={market.id}>
+                <Link
+                  href={`/m/${market.slug}`}
+                  className="flex items-center gap-4 rounded-2xl border-2 border-line bg-card p-4 active:border-ink/50"
+                >
+                  <Image
+                    src="/icons/mappin.png"
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 shrink-0"
+                  />
+                  <span className="flex-1">
+                    <span className="block text-lg font-extrabold">{market.name}</span>
+                    <span className="block text-sm font-medium text-ink">
+                      {market.stall_count === 1 ? '1 stall' : `${market.stall_count} stalls`} · one
+                      basket, one payment
+                    </span>
+                  </span>
+                  <span className="text-ink">›</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {vendors.length > 0 && (
         <section className="mt-8">
@@ -34,11 +67,12 @@ export default async function Home() {
                   className="flex items-center gap-4 rounded-2xl border-2 border-line bg-card p-4 active:border-ink/50"
                 >
                   <Image
-                    src={stallIconPath(vendor.emoji, vendor.name)}
+                    src={stallArtSrc(vendor.slug)}
                     alt=""
                     width={64}
                     height={64}
-                    className="h-16 w-16 shrink-0"
+                    unoptimized
+                    className="h-16 w-16 shrink-0 object-contain"
                   />
                   <span className="flex-1">
                     <span className="block text-lg font-extrabold">{vendor.name}</span>

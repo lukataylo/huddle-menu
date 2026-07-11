@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatMoney } from '@/lib/format'
-import { stallIconPath } from '@/lib/stall-icon'
+import { stallArtSrc } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import { useNotificationPermission, useReadyBuzzer } from '@/lib/use-ready-buzzer'
 import type { OrderLineItem, OrderStatus } from '@/lib/types'
@@ -161,11 +161,12 @@ export default function OrderTracker({
           </p>
         </div>
         <Image
-          src={stallIconPath(vendor.emoji, vendor.name)}
+          src={stallArtSrc(vendor.slug)}
           alt=""
           width={72}
           height={72}
-          className="h-18 w-18 shrink-0"
+          unoptimized
+          className="h-18 w-18 shrink-0 object-contain"
         />
       </div>
 
