@@ -75,7 +75,7 @@ export default function OrderTracker({
 
   return (
     <div
-      className={`mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 py-8 text-midnight transition-colors ${
+      className={`mx-auto flex min-h-dvh w-full max-w-lg md:max-w-2xl flex-col px-5 py-8 text-midnight transition-colors ${
         order.status === 'ready' ? 'animate-pulse bg-green-50' : 'bg-paper'
       }`}
     >

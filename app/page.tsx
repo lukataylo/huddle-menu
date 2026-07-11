@@ -10,7 +10,7 @@ export default async function Home() {
   const vendors = await listVendors().catch(() => [])
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper px-6 pb-28 pt-10 text-midnight">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg md:max-w-3xl flex-col bg-paper px-6 pb-28 pt-10 text-midnight">
       <header>
         <h1 className="font-display text-4xl leading-none text-ink">HUDDLE MENU</h1>
         <p className="mt-1 font-medium text-midnight/70">
@@ -26,7 +26,7 @@ export default async function Home() {
               My stamps
             </Link>
           </div>
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-3 space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {vendors.map((vendor) => (
               <li key={vendor.id}>
                 <Link

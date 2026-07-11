@@ -82,7 +82,7 @@ export default function MultiTracker({ orderIds }: { orderIds: string[] }) {
 
   return (
     <div
-      className={`mx-auto flex min-h-dvh w-full max-w-lg flex-col px-5 pb-28 pt-8 text-midnight transition-colors ${
+      className={`mx-auto flex min-h-dvh w-full max-w-lg md:max-w-3xl flex-col px-5 pb-28 pt-8 text-midnight transition-colors ${
         readyOrders.length > 0 ? 'animate-pulse bg-green-50' : 'bg-paper'
       }`}
     >
@@ -104,7 +104,7 @@ export default function MultiTracker({ orderIds }: { orderIds: string[] }) {
         </button>
       )}
 
-      <div className="mt-5 space-y-3">
+      <div className="mt-5 space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
         {orders.length === 0 && <p className="text-midnight/40">Loading your orders…</p>}
         {orders.map((order) => (
           <div

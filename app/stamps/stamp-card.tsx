@@ -61,7 +61,7 @@ export default function StampCard() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper px-5 pb-28 pt-8 text-midnight">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg md:max-w-2xl flex-col bg-paper px-5 pb-28 pt-8 text-midnight">
       <h1 className="font-display text-4xl leading-none text-ink">MY STAMPS</h1>
       <p className="mt-1 text-midnight/60">
         Every order on this device earns a stamp. Fill a card, show it at the stall.

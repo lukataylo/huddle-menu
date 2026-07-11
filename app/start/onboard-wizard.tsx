@@ -100,7 +100,7 @@ export default function OnboardWizard() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper px-5 py-8 text-midnight">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg md:max-w-2xl flex-col bg-paper px-5 py-8 text-midnight">
       <h1 className="font-display text-4xl leading-tight text-ink">
         LET&apos;S GET YOUR MENU LIVE
       </h1>

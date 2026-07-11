@@ -123,7 +123,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper text-midnight">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg md:max-w-3xl flex-col bg-paper text-midnight">
       <header className="sticky top-0 z-10 border-b border-line bg-paper/95 px-5 py-4 backdrop-blur">
         <div className="flex items-center gap-2">
           <Image src="/icons/market.png" alt="" width={40} height={40} className="h-10 w-10" />
@@ -151,7 +151,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
                 />
                 {vendor.name.toUpperCase()}
               </h2>
-              <ul className="space-y-2">
+              <ul className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
                 {items.map((item) => (
                   <li
                     key={item.id}
@@ -240,7 +240,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
       )}
 
       {totalCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg border-t border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg md:max-w-3xl border-t border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {view === 'menu' ? (
             <button
               onClick={() => setView('basket')}
