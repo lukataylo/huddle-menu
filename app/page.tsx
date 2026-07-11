@@ -1,5 +1,7 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { listVendors } from '@/lib/data'
+import { stallIconPath } from '@/lib/stall-icon'
 import BottomNav from './bottom-nav'
 
 export const dynamic = 'force-dynamic'
@@ -31,9 +33,13 @@ export default async function Home() {
                   href={`/v/${vendor.slug}`}
                   className="flex items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 active:border-ink/50"
                 >
-                  <span className="flex h-14 w-14 items-center justify-center rounded-xl border-2 border-ink/15 bg-paper text-2xl">
-                    {vendor.emoji}
-                  </span>
+                  <Image
+                    src={stallIconPath(vendor.emoji, vendor.name)}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 shrink-0"
+                  />
                   <span className="flex-1">
                     <span className="block text-lg font-extrabold">{vendor.name}</span>
                     <span className="block text-sm font-medium text-ink">Tap to see the menu</span>
@@ -65,9 +71,7 @@ export default async function Home() {
           href="/start"
           className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-ink/20 bg-paper p-3 active:border-ink/50"
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-lg text-white">
-            📸
-          </span>
+          <Image src="/icons/qr.png" alt="" width={44} height={44} className="h-11 w-11 shrink-0" />
           <span className="flex-1">
             <span className="block font-extrabold">Get your menu live</span>
             <span className="block text-sm text-midnight/60">Scan it — we handle the rest</span>

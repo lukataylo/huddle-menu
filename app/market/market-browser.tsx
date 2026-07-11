@@ -1,9 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { formatMoney } from '@/lib/format'
+import { stallIconPath } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import type { MenuItem } from '@/lib/types'
 
@@ -55,7 +57,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
   }
 
   async function checkout() {
-    if (!customerName.trim() || basket.length === 0 || submitting) return
+    if (basket.length === 0 || submitting) return
     setSubmitting(true)
     setError(null)
     try {
@@ -123,7 +125,10 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper text-midnight">
       <header className="sticky top-0 z-10 border-b border-ink/20 bg-paper/95 px-5 py-4 backdrop-blur">
-        <h1 className="font-display text-3xl leading-none text-ink">🍜 HUDDLE MARKET</h1>
+        <div className="flex items-center gap-2">
+          <Image src="/icons/market.png" alt="" width={40} height={40} className="h-10 w-10" />
+          <h1 className="font-display text-3xl leading-none text-ink">HUDDLE MARKET</h1>
+        </div>
         <p className="text-sm text-midnight/60">
           One basket, every stall · <Link href="/stamps" className="font-medium text-ink">My stamps</Link>
         </p>
@@ -136,8 +141,15 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
           )}
           {stalls.map(({ vendor, items }) => (
             <section key={vendor.slug} className="mb-8">
-              <h2 className="mb-2 flex items-baseline gap-2 font-display text-2xl text-ink">
-                <span>{vendor.emoji}</span> {vendor.name.toUpperCase()}
+              <h2 className="mb-2 flex items-center gap-2 font-display text-2xl text-ink">
+                <Image
+                  src={stallIconPath(vendor.emoji, vendor.name)}
+                  alt=""
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 shrink-0"
+                />
+                {vendor.name.toUpperCase()}
               </h2>
               <ul className="space-y-2">
                 {items.map((item) => (
@@ -211,11 +223,13 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
           {basket.length === 0 && <p className="text-midnight/60">Your basket is empty.</p>}
 
           <label className="mt-6 block">
-            <span className="mb-1 block text-sm font-medium text-midnight/80">Name for the order</span>
+            <span className="mb-1 block text-sm font-medium text-midnight/80">
+              Name for the order <span className="text-midnight/50">(optional)</span>
+            </span>
             <input
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="e.g. Sam"
+              placeholder="e.g. Sam — or leave blank"
               maxLength={60}
               className="w-full rounded-xl border border-ink/30 bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
@@ -241,7 +255,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
           ) : (
             <button
               onClick={checkout}
-              disabled={submitting || !customerName.trim() || basket.length === 0}
+              disabled={submitting || basket.length === 0}
               className="flex w-full items-center justify-between rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep disabled:bg-ink/20"
             >
               <span>{submitting ? 'Starting payment…' : 'Pay now'}</span>

@@ -1,8 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
 import QRCode from 'qrcode'
 import { formatMoney } from '@/lib/format'
+import { stallIconPath } from '@/lib/stall-icon'
 import type { MenuItem, Order, OrderStatus } from '@/lib/types'
 
 interface VendorInfo {
@@ -126,8 +128,15 @@ export default function KitchenBoard({
     <div className="min-h-dvh bg-paper text-midnight">
       <header className="sticky top-0 z-10 border-b-2 border-ink/15 bg-card px-5 py-3">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <h1 className="font-display text-2xl leading-none text-ink">
-            {vendor.emoji} {vendor.name.toUpperCase()}
+          <h1 className="flex items-center gap-2 font-display text-2xl leading-none text-ink">
+            <Image
+              src={stallIconPath(vendor.emoji, vendor.name)}
+              alt=""
+              width={40}
+              height={40}
+              className="h-10 w-10 shrink-0"
+            />
+            {vendor.name.toUpperCase()}
           </h1>
           <nav className="flex gap-1 rounded-xl border-2 border-ink/15 bg-paper p-1 text-sm font-bold">
             {(['orders', 'menu', 'qr'] as Tab[]).map((t) => (

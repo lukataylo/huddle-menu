@@ -23,12 +23,14 @@ export async function POST(req: Request) {
   }
 
   const slug = typeof body.slug === 'string' ? body.slug : ''
-  const customerName = typeof body.customerName === 'string' ? body.customerName.trim().slice(0, 60) : ''
+  // Name is optional — the order number is the real claim ticket.
+  const customerName =
+    (typeof body.customerName === 'string' ? body.customerName.trim().slice(0, 60) : '') || 'Guest'
   const rawItems = Array.isArray(body.items) ? body.items : []
 
-  if (!slug || !customerName || rawItems.length === 0 || rawItems.length > MAX_LINE_ITEMS) {
+  if (!slug || rawItems.length === 0 || rawItems.length > MAX_LINE_ITEMS) {
     return NextResponse.json(
-      { error: 'slug, customerName and at least one item are required' },
+      { error: 'slug and at least one item are required' },
       { status: 400 }
     )
   }

@@ -12,15 +12,13 @@ const MAX_QUANTITY = 20
 // by a single Mollie payment.
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null)
+  // Name is optional — the order number is the real claim ticket.
   const customerName =
-    typeof body?.customerName === 'string' ? body.customerName.trim().slice(0, 60) : ''
+    (typeof body?.customerName === 'string' ? body.customerName.trim().slice(0, 60) : '') || 'Guest'
   const rawItems = Array.isArray(body?.items) ? body.items : []
 
-  if (!customerName || rawItems.length === 0 || rawItems.length > MAX_LINE_ITEMS) {
-    return NextResponse.json(
-      { error: 'customerName and at least one item are required' },
-      { status: 400 }
-    )
+  if (rawItems.length === 0 || rawItems.length > MAX_LINE_ITEMS) {
+    return NextResponse.json({ error: 'At least one item is required' }, { status: 400 })
   }
 
   const requested = new Map<string, number>()

@@ -1,8 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatMoney } from '@/lib/format'
+import { stallIconPath } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import type { MenuItem } from '@/lib/types'
 
@@ -49,7 +51,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
   }
 
   async function checkout() {
-    if (!customerName.trim() || basket.length === 0 || submitting) return
+    if (basket.length === 0 || submitting) return
     setSubmitting(true)
     setError(null)
     try {
@@ -79,11 +81,23 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper text-midnight">
       <header className="sticky top-0 z-10 border-b border-ink/20 bg-paper/95 px-5 py-4 backdrop-blur">
-        <h1 className="font-display text-3xl leading-none text-ink">
-          <span className="mr-2">{vendor.emoji}</span>
-          {vendor.name.toUpperCase()}
-        </h1>
-        <p className="mt-1 text-sm font-medium text-midnight/60">Order &amp; pay from your phone</p>
+        <div className="flex items-center gap-3">
+          <Image
+            src={stallIconPath(vendor.emoji, vendor.name)}
+            alt=""
+            width={56}
+            height={56}
+            className="h-14 w-14 shrink-0"
+          />
+          <div>
+            <h1 className="font-display text-3xl leading-none text-ink">
+              {vendor.name.toUpperCase()}
+            </h1>
+            <p className="mt-1 text-sm font-medium text-midnight/60">
+              Order &amp; pay from your phone
+            </p>
+          </div>
+        </div>
       </header>
 
       {view === 'menu' ? (
@@ -192,11 +206,13 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
           {basket.length === 0 && <p className="text-midnight/60">Your basket is empty.</p>}
 
           <label className="mt-6 block">
-            <span className="mb-1 block text-sm font-medium text-midnight/80">Name for the order</span>
+            <span className="mb-1 block text-sm font-medium text-midnight/80">
+              Name for the order <span className="text-midnight/50">(optional)</span>
+            </span>
             <input
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="e.g. Sam"
+              placeholder="e.g. Sam — or leave blank"
               maxLength={60}
               className="w-full rounded-xl border border-ink/30 bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
@@ -223,7 +239,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
           ) : (
             <button
               onClick={checkout}
-              disabled={submitting || !customerName.trim() || basket.length === 0}
+              disabled={submitting || basket.length === 0}
               className="flex w-full items-center justify-between rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep disabled:bg-ink/20"
             >
               <span>{submitting ? 'Starting payment…' : 'Pay now'}</span>

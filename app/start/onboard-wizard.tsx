@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 
@@ -144,9 +145,7 @@ export default function OnboardWizard() {
           <div className={`space-y-3 ${name.trim() ? '' : 'pointer-events-none opacity-40'}`}>
             <span className="mb-1 block text-sm font-medium text-midnight/80">Your menu</span>
             <label className="flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 active:border-ink/50">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-ink text-2xl">
-                📸
-              </span>
+              <Image src="/icons/qr.png" alt="" width={56} height={56} className="h-14 w-14 shrink-0" />
               <span className="flex-1">
                 <span className="block text-lg font-extrabold text-ink">
                   {extracting ? 'Reading your menu…' : 'Scan Menu'}
@@ -168,9 +167,7 @@ export default function OnboardWizard() {
               onClick={startManually}
               className="flex w-full items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 text-left active:border-ink/50"
             >
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-ink text-2xl">
-                ✏️
-              </span>
+              <Image src="/icons/menu.png" alt="" width={56} height={56} className="h-14 w-14 shrink-0" />
               <span className="flex-1">
                 <span className="block text-lg font-extrabold text-ink">Type It In</span>
                 <span className="block text-sm font-medium text-midnight/60">

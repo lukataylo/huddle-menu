@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { formatMoney } from '@/lib/format'
 import { getStoredOrders } from '@/lib/loyalty'
@@ -70,7 +71,7 @@ export default function StampCard() {
 
       {orders !== null && stamped.length === 0 && (
         <div className="mt-10 rounded-2xl border border-dashed border-ink/30 p-8 text-center">
-          <p className="text-4xl">🎫</p>
+          <Image src="/icons/heart.png" alt="" width={64} height={64} className="mx-auto h-16 w-16" />
           <p className="mt-3 font-medium">No stamps yet</p>
           <p className="mt-1 text-sm text-midnight/60">Place your first order and it&apos;ll show up here.</p>
           <Link

@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { formatMoney } from '@/lib/format'
+import { stallIconPath } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import { useNotificationPermission, useReadyBuzzer } from '@/lib/use-ready-buzzer'
 import type { OrderLineItem, OrderStatus } from '@/lib/types'
@@ -33,10 +35,10 @@ const STATUS_COPY: Record<OrderStatus, { title: string; detail: string }> = {
 }
 
 const STEPS: Array<{ key: OrderStatus; label: string; icon: string }> = [
-  { key: 'paid', label: 'Received', icon: '✓' },
-  { key: 'preparing', label: 'Preparing', icon: '🍳' },
-  { key: 'ready', label: 'Ready', icon: '🛎️' },
-  { key: 'collected', label: 'Picked up', icon: '🛍️' },
+  { key: 'paid', label: 'Received', icon: '/icons/receipt.png' },
+  { key: 'preparing', label: 'Preparing', icon: '/icons/bowl.png' },
+  { key: 'ready', label: 'Ready', icon: '/icons/bag.png' },
+  { key: 'collected', label: 'Picked up', icon: '/icons/heart.png' },
 ]
 
 export default function OrderTracker({
@@ -91,7 +93,9 @@ export default function OrderTracker({
       >
         <h1 className="text-xl font-extrabold text-ink">{copy.title}</h1>
         <p className="mt-1 text-sm font-medium text-midnight/70">{copy.detail}</p>
-        <p className="mt-1 text-sm font-bold text-midnight/80">for {order.customer_name}</p>
+        {order.customer_name !== 'Guest' && (
+          <p className="mt-1 text-sm font-bold text-midnight/80">for {order.customer_name}</p>
+        )}
 
         {order.status !== 'cancelled' && order.status !== 'pending' && (
           <div className="mt-6 flex items-center">
@@ -104,11 +108,21 @@ export default function OrderTracker({
                       i < stepIndex
                         ? 'border-ink bg-ink text-white'
                         : i === stepIndex
-                          ? 'border-ink bg-card text-ink'
-                          : 'border-ink/20 bg-card text-ink/30'
+                          ? 'border-ink bg-card'
+                          : 'border-ink/20 bg-card'
                     }`}
                   >
-                    {i < stepIndex ? '✓' : step.icon}
+                    {i < stepIndex ? (
+                      '✓'
+                    ) : (
+                      <Image
+                        src={step.icon}
+                        alt=""
+                        width={22}
+                        height={22}
+                        className={i === stepIndex ? '' : 'opacity-30 grayscale'}
+                      />
+                    )}
                   </div>
                   <div className={`h-0.5 flex-1 ${i === STEPS.length - 1 ? 'invisible' : ''} ${i < stepIndex ? 'bg-ink' : 'bg-ink/20'}`} />
                 </div>
@@ -134,11 +148,20 @@ export default function OrderTracker({
         )}
       </div>
 
-      <div className="mt-4 rounded-3xl border-2 border-ink/20 bg-card p-5">
-        <h2 className="font-display text-lg text-ink">PICKUP AT</h2>
-        <p className="mt-1 text-lg font-extrabold">
-          {vendor.emoji} {vendor.name}
-        </p>
+      <div className="mt-4 flex items-center justify-between rounded-3xl border-2 border-ink/20 bg-card p-5">
+        <div>
+          <h2 className="font-display text-lg text-ink">PICKUP AT</h2>
+          <p className="mt-1 text-lg font-extrabold">
+            {vendor.emoji} {vendor.name}
+          </p>
+        </div>
+        <Image
+          src={stallIconPath(vendor.emoji, vendor.name)}
+          alt=""
+          width={72}
+          height={72}
+          className="h-18 w-18 shrink-0"
+        />
       </div>
 
       <div className="mt-4 rounded-3xl border-2 border-ink/20 bg-card p-5">
