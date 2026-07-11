@@ -99,9 +99,11 @@ export default function OnboardWizard() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-stone-50 px-5 py-8 text-stone-900">
-      <h1 className="text-2xl font-black tracking-tight">Get your stall online</h1>
-      <p className="mt-1 text-stone-500">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper px-5 py-8 text-midnight">
+      <h1 className="font-display text-4xl leading-tight text-ink">
+        LET&apos;S GET YOUR MENU LIVE
+      </h1>
+      <p className="mt-1 text-midnight/60">
         Photograph your menu, confirm the items, get a QR code. About five minutes.
       </p>
 
@@ -110,18 +112,18 @@ export default function OnboardWizard() {
       {step === 'details' && (
         <div className="mt-6 space-y-5">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-stone-700">Stall name</span>
+            <span className="mb-1 block text-sm font-medium text-midnight/80">Stall name</span>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Borough Bao"
               maxLength={80}
-              className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-200"
+              className="w-full rounded-xl border border-ink/30 bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
           </label>
 
           <div>
-            <span className="mb-1 block text-sm font-medium text-stone-700">Pick an emoji</span>
+            <span className="mb-1 block text-sm font-medium text-midnight/80">Pick an emoji</span>
             <div className="flex flex-wrap gap-2">
               {EMOJI_OPTIONS.map((option) => (
                 <button
@@ -129,8 +131,8 @@ export default function OnboardWizard() {
                   onClick={() => setEmoji(option)}
                   className={`h-11 w-11 rounded-xl border text-xl ${
                     emoji === option
-                      ? 'border-amber-600 bg-amber-50 ring-2 ring-amber-200'
-                      : 'border-stone-200 bg-white'
+                      ? 'border-ink bg-paper ring-2 ring-ink/20'
+                      : 'border-ink/20 bg-card'
                   }`}
                 >
                   {option}
@@ -139,16 +141,21 @@ export default function OnboardWizard() {
             </div>
           </div>
 
-          <div className={name.trim() ? '' : 'pointer-events-none opacity-40'}>
-            <span className="mb-1 block text-sm font-medium text-stone-700">Your menu</span>
-            <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/50 px-6 py-10 text-center">
-              <span className="text-3xl">📸</span>
-              <span className="mt-2 font-semibold text-amber-800">
-                {extracting ? 'Reading your menu…' : 'Photograph your paper menu'}
+          <div className={`space-y-3 ${name.trim() ? '' : 'pointer-events-none opacity-40'}`}>
+            <span className="mb-1 block text-sm font-medium text-midnight/80">Your menu</span>
+            <label className="flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 active:border-ink/50">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-ink text-2xl">
+                📸
               </span>
-              <span className="mt-1 text-sm text-stone-500">
-                We&apos;ll extract the items automatically
+              <span className="flex-1">
+                <span className="block text-lg font-extrabold text-ink">
+                  {extracting ? 'Reading your menu…' : 'Scan Menu'}
+                </span>
+                <span className="block text-sm font-medium text-midnight/60">
+                  Take a photo of your menu and we&apos;ll extract it.
+                </span>
               </span>
+              <span className="text-xl text-ink">›</span>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -157,9 +164,24 @@ export default function OnboardWizard() {
                 onChange={(e) => e.target.files?.[0] && handlePhoto(e.target.files[0])}
               />
             </label>
-            <button onClick={startManually} className="mt-3 w-full text-sm font-medium text-amber-700">
-              Or type your menu in manually
+            <button
+              onClick={startManually}
+              className="flex w-full items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 text-left active:border-ink/50"
+            >
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-ink text-2xl">
+                ✏️
+              </span>
+              <span className="flex-1">
+                <span className="block text-lg font-extrabold text-ink">Type It In</span>
+                <span className="block text-sm font-medium text-midnight/60">
+                  Add your menu items manually.
+                </span>
+              </span>
+              <span className="text-xl text-ink">›</span>
             </button>
+            <p className="pt-1 text-center text-sm text-midnight/50">
+              You can always edit your menu later.
+            </p>
           </div>
         </div>
       )}
@@ -167,19 +189,19 @@ export default function OnboardWizard() {
       {step === 'confirm' && (
         <div className="mt-6">
           <h2 className="text-lg font-bold">Confirm your menu</h2>
-          <p className="mb-4 text-sm text-stone-500">Fix anything we misread, then create your stall.</p>
+          <p className="mb-4 text-sm text-midnight/60">Fix anything we misread, then create your stall.</p>
           <div className="space-y-3">
             {items.map((item, index) => (
-              <div key={index} className="rounded-xl border border-stone-200 bg-white p-3">
+              <div key={index} className="rounded-xl border border-ink/20 bg-card p-3">
                 <div className="flex gap-2">
                   <input
                     value={item.name}
                     onChange={(e) => updateItem(index, { name: e.target.value })}
                     placeholder="Item name"
-                    className="min-w-0 flex-1 rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium outline-none focus:border-amber-600"
+                    className="min-w-0 flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm font-medium outline-none focus:border-ink"
                   />
-                  <div className="flex w-24 items-center rounded-lg border border-stone-200 px-2">
-                    <span className="text-sm text-stone-400">£</span>
+                  <div className="flex w-24 items-center rounded-lg border border-ink/20 px-2">
+                    <span className="text-sm text-midnight/40">£</span>
                     <input
                       value={(item.price_pence / 100).toFixed(2)}
                       onChange={(e) => {
@@ -195,7 +217,7 @@ export default function OnboardWizard() {
                   </div>
                   <button
                     onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
-                    className="shrink-0 px-1 text-stone-400"
+                    className="shrink-0 px-1 text-midnight/40"
                     aria-label={`Remove ${item.name || 'item'}`}
                   >
                     ✕
@@ -206,13 +228,13 @@ export default function OnboardWizard() {
                     value={item.description}
                     onChange={(e) => updateItem(index, { description: e.target.value })}
                     placeholder="Description (optional)"
-                    className="min-w-0 flex-1 rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none focus:border-amber-600"
+                    className="min-w-0 flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-ink"
                   />
                   <input
                     value={item.category}
                     onChange={(e) => updateItem(index, { category: e.target.value })}
                     placeholder="Category"
-                    className="w-28 rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none focus:border-amber-600"
+                    className="w-28 rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-ink"
                   />
                 </div>
               </div>
@@ -225,7 +247,7 @@ export default function OnboardWizard() {
                 { name: '', description: '', price_pence: 0, category: prev.at(-1)?.category ?? 'Menu' },
               ])
             }
-            className="mt-3 text-sm font-medium text-amber-700"
+            className="mt-3 text-sm font-medium text-ink"
           >
             + Add another item
           </button>
@@ -233,7 +255,7 @@ export default function OnboardWizard() {
           <button
             onClick={createStall}
             disabled={creating || !items.some((item) => item.name.trim())}
-            className="mt-6 w-full rounded-xl bg-amber-600 px-5 py-3.5 font-semibold text-white active:bg-amber-700 disabled:bg-stone-300"
+            className="mt-6 w-full rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep disabled:bg-ink/20"
           >
             {creating ? 'Creating your stall…' : `Create ${emoji} ${name || 'my stall'}`}
           </button>
@@ -250,31 +272,31 @@ export default function OnboardWizard() {
               <img
                 src={created.qrDataUrl}
                 alt={`QR code for the ${name} menu`}
-                className="mx-auto mt-3 w-56 rounded-lg bg-white p-2"
+                className="mx-auto mt-3 w-56 rounded-lg bg-card p-2"
               />
             )}
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-midnight/70">
               Print this QR and stick it on your stall — customers scan it to order.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-stone-200 bg-white p-5">
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-stone-400">
+          <div className="rounded-2xl border border-ink/20 bg-card p-5">
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-midnight/40">
               Your links
             </h3>
             <p className="mt-3 text-sm">
               <span className="font-medium">Customer menu:</span>{' '}
-              <Link href={created.menuPath} className="break-all text-amber-700 underline">
+              <Link href={created.menuPath} className="break-all text-ink underline">
                 {created.menuPath}
               </Link>
             </p>
             <p className="mt-2 text-sm">
               <span className="font-medium">Kitchen screen:</span>{' '}
-              <Link href={created.kitchenPath} className="break-all text-amber-700 underline">
+              <Link href={created.kitchenPath} className="break-all text-ink underline">
                 {created.kitchenPath}
               </Link>
             </p>
-            <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            <p className="mt-3 rounded-lg bg-paper px-3 py-2 text-sm text-ink">
               ⚠️ Save the kitchen link somewhere safe — it&apos;s your only way to manage orders.
               Anyone with it can run your stall.
             </p>

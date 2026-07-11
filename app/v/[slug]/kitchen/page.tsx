@@ -24,9 +24,9 @@ export default async function KitchenPage({
       <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-6 text-center">
         <p className="text-4xl">🔒</p>
         <h1 className="mt-3 text-xl font-bold">Kitchen access denied</h1>
-        <p className="mt-2 text-sm text-stone-500">
+        <p className="mt-2 text-sm text-midnight/60">
           This page needs the vendor admin link. Check the URL you were given includes the correct{' '}
-          <code className="rounded bg-stone-100 px-1">?token=</code>.
+          <code className="rounded bg-ink/10 px-1">?token=</code>.
         </p>
       </div>
     )

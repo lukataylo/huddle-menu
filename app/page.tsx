@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { listVendors } from '@/lib/data'
+import BottomNav from './bottom-nav'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,36 +8,37 @@ export default async function Home() {
   const vendors = await listVendors().catch(() => [])
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-stone-50 px-6 py-12 text-stone-900">
-      <div className="text-center">
-        <p className="text-5xl">🍜</p>
-        <h1 className="mt-4 text-3xl font-black tracking-tight">Huddle Menu</h1>
-        <p className="mt-3 text-stone-500">
-          Scan, order, pay, skip the queue. QR-code ordering for street food stalls.
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper px-6 pb-28 pt-10 text-midnight">
+      <header>
+        <h1 className="font-display text-4xl leading-none text-ink">HUDDLE MENU</h1>
+        <p className="mt-1 font-medium text-midnight/70">
+          Discover amazing food stalls — scan, order, skip the queue.
         </p>
-      </div>
+      </header>
 
       {vendors.length > 0 && (
-        <div className="mt-10">
+        <section className="mt-8">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-stone-400">
-              Open stalls
-            </h2>
-            <Link href="/stamps" className="text-sm font-medium text-amber-700">
+            <h2 className="font-display text-xl text-ink">OPEN STALLS</h2>
+            <Link href="/stamps" className="text-sm font-bold text-ink">
               My stamps
             </Link>
           </div>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-3 space-y-3">
             {vendors.map((vendor) => (
               <li key={vendor.id}>
                 <Link
                   href={`/v/${vendor.slug}`}
-                  className="flex items-center justify-between rounded-xl border border-stone-200 bg-white p-4 shadow-sm active:bg-stone-50"
+                  className="flex items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 active:border-ink/50"
                 >
-                  <span className="font-medium">
-                    {vendor.emoji} {vendor.name}
+                  <span className="flex h-14 w-14 items-center justify-center rounded-xl border-2 border-ink/15 bg-paper text-2xl">
+                    {vendor.emoji}
                   </span>
-                  <span className="text-stone-400">→</span>
+                  <span className="flex-1">
+                    <span className="block text-lg font-extrabold">{vendor.name}</span>
+                    <span className="block text-sm font-medium text-ink">Tap to see the menu</span>
+                  </span>
+                  <span className="text-ink">›</span>
                 </Link>
               </li>
             ))}
@@ -44,26 +46,37 @@ export default async function Home() {
           {vendors.length > 1 && (
             <Link
               href="/market"
-              className="mt-3 block rounded-xl bg-amber-600 p-4 text-center font-semibold text-white active:bg-amber-700"
+              className="mt-4 block rounded-2xl bg-ink p-4 text-center font-extrabold text-white active:bg-ink-deep"
             >
-              🧺 Order from every stall in one basket
+              🧺 One basket, every stall →
             </Link>
           )}
-        </div>
+        </section>
       )}
 
-      <div className="mt-10 rounded-2xl border border-dashed border-stone-300 p-5 text-center">
-        <p className="font-medium">Run a food stall?</p>
-        <p className="mt-1 text-sm text-stone-500">
-          Photograph your paper menu and be taking orders in five minutes.
+      <section className="mt-8 rounded-2xl border-2 border-dashed border-ink/30 bg-card p-5">
+        <h2 className="font-display text-2xl leading-tight text-ink">
+          RUN A FOOD STALL?
+        </h2>
+        <p className="mt-1 text-sm font-medium text-midnight/70">
+          Photograph your paper menu and we&apos;ll get you live in five minutes.
         </p>
         <Link
           href="/start"
-          className="mt-3 inline-block rounded-xl border border-amber-600 px-5 py-2.5 text-sm font-semibold text-amber-700"
+          className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-ink/20 bg-paper p-3 active:border-ink/50"
         >
-          Get your stall online →
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-lg text-white">
+            📸
+          </span>
+          <span className="flex-1">
+            <span className="block font-extrabold">Get your menu live</span>
+            <span className="block text-sm text-midnight/60">Scan it — we handle the rest</span>
+          </span>
+          <span className="text-ink">›</span>
         </Link>
-      </div>
+      </section>
+
+      <BottomNav />
     </div>
   )
 }
