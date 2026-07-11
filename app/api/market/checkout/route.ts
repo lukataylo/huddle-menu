@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createOrder, setOrderPaymentId, updateOrderStatus } from '@/lib/data'
+import { createOrder, getMarketBySlug, setOrderPaymentId, updateOrderStatus } from '@/lib/data'
 import { pool } from '@/lib/db'
 import { toMollieAmount } from '@/lib/format'
 import { getBaseUrl, getMollieClient, isMollieConfigured } from '@/lib/mollie'
+import { createStripeCheckout, isStripeConfigured } from '@/lib/stripe'
 import type { MenuItem, Order, OrderLineItem, Vendor } from '@/lib/types'
 
 const MAX_LINE_ITEMS = 50
@@ -15,6 +16,8 @@ export async function POST(req: Request) {
   // Name is optional — the order number is the real claim ticket.
   const customerName =
     (typeof body?.customerName === 'string' ? body.customerName.trim().slice(0, 60) : '') || 'Guest'
+  const marketSlug = typeof body?.marketSlug === 'string' ? body.marketSlug : null
+  const payMethod = body?.payMethod === 'cash' ? 'cash' : 'card'
   const rawItems = Array.isArray(body?.items) ? body.items : []
 
   if (rawItems.length === 0 || rawItems.length > MAX_LINE_ITEMS) {
@@ -45,6 +48,16 @@ export async function POST(req: Request) {
   const { rows: vendors } = await pool.query<Vendor>(`SELECT * FROM vendors WHERE id = ANY($1)`, [
     [...new Set(menuItems.map((item) => item.vendor_id))],
   ])
+  // A market-scoped basket may only contain that market's stalls.
+  if (marketSlug) {
+    const market = await getMarketBySlug(marketSlug)
+    if (!market || vendors.some((vendor) => vendor.market_id !== market.id)) {
+      return NextResponse.json(
+        { error: 'Some items are not from this market. Please refresh the menu.' },
+        { status: 400 }
+      )
+    }
+  }
   const currencies = new Set(vendors.map((v) => v.currency))
   if (currencies.size > 1) {
     return NextResponse.json(
@@ -54,7 +67,11 @@ export async function POST(req: Request) {
   }
   const currency = vendors[0].currency
 
-  const initialStatus = isMollieConfigured() ? 'pending' : 'paid'
+  // Cash baskets stay pending; the customer pays each stall at pickup and
+  // each kitchen taps "Mark paid" on its own order.
+  const onlineConfigured = isStripeConfigured() || isMollieConfigured()
+  const initialStatus =
+    payMethod === 'cash' ? 'pending' : onlineConfigured ? 'pending' : 'paid'
   const orders: Order[] = []
   for (const vendor of vendors) {
     const lineItems: OrderLineItem[] = menuItems
@@ -73,12 +90,42 @@ export async function POST(req: Request) {
     id: order.id,
     slug: vendors.find((vendor) => vendor.id === order.vendor_id)!.slug,
   }))
-  if (!isMollieConfigured()) {
+  if (payMethod === 'cash' || !onlineConfigured) {
     return NextResponse.json({ orderIds, orders: orderSummaries, checkoutUrl: null })
   }
 
   const totalPence = orders.reduce((sum, order) => sum + order.total_pence, 0)
   const baseUrl = getBaseUrl(req)
+  const trackPath = `/track?ids=${orderIds.join(',')}`
+  if (isStripeConfigured()) {
+    try {
+      const stripeLineItems = menuItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price_pence: item.price_pence,
+        quantity: requested.get(item.id)!,
+        stallName: vendors.find((vendor) => vendor.id === item.vendor_id)?.name,
+      }))
+      const { sessionId, url } = await createStripeCheckout({
+        orderIds,
+        lineItems: stripeLineItems,
+        currency,
+        description: `Huddle Market order for ${customerName}`,
+        nextPath: trackPath,
+        cancelPath: marketSlug ? `/m/${marketSlug}` : '/market',
+        baseUrl,
+      })
+      await Promise.all(orderIds.map((id) => setOrderPaymentId(id, sessionId)))
+      return NextResponse.json({ orderIds, orders: orderSummaries, checkoutUrl: url })
+    } catch (err) {
+      console.error('[market checkout] Stripe checkout creation failed:', err)
+      await Promise.all(orderIds.map((id) => updateOrderStatus(id, 'cancelled')))
+      return NextResponse.json(
+        { error: 'Payment could not be started. Please try again.' },
+        { status: 502 }
+      )
+    }
+  }
   try {
     const payment = await getMollieClient().payments.create({
       amount: { currency, value: toMollieAmount(totalPence) },

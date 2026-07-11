@@ -79,12 +79,20 @@ async function seed() {
 
     const newAdminToken = crypto.randomBytes(24).toString('base64url')
 
+    const marketResult = await client.query(
+      `INSERT INTO markets (slug, name) VALUES ('borough-market', 'Borough Market')
+       ON CONFLICT (slug) DO UPDATE SET slug = markets.slug
+       RETURNING id, slug`
+    )
+    const market = marketResult.rows[0]
+    console.log(`[seed] Market "${market.slug}" ready`)
+
     const upsertResult = await client.query(
-      `INSERT INTO vendors (slug, admin_token, name, emoji, currency)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (slug) DO NOTHING
+      `INSERT INTO vendors (slug, admin_token, name, emoji, currency, market_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (slug) DO UPDATE SET market_id = EXCLUDED.market_id
        RETURNING id, slug, admin_token`,
-      [VENDOR.slug, newAdminToken, VENDOR.name, VENDOR.emoji, VENDOR.currency]
+      [VENDOR.slug, newAdminToken, VENDOR.name, VENDOR.emoji, VENDOR.currency, market.id]
     )
 
     let vendor: { id: string; slug: string; admin_token: string }

@@ -34,6 +34,19 @@ const STATEMENTS = [
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   );`,
+  `CREATE TABLE IF NOT EXISTS markets (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    slug text UNIQUE NOT NULL,
+    name text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+  );`,
+  `ALTER TABLE vendors ADD COLUMN IF NOT EXISTS market_id uuid REFERENCES markets(id) ON DELETE SET NULL;`,
+  `CREATE TABLE IF NOT EXISTS vendor_art (
+    vendor_id uuid PRIMARY KEY REFERENCES vendors(id) ON DELETE CASCADE,
+    png bytea NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_vendors_market ON vendors(market_id);`,
   `CREATE INDEX IF NOT EXISTS idx_menu_items_vendor ON menu_items(vendor_id);`,
   `CREATE INDEX IF NOT EXISTS idx_orders_vendor ON orders(vendor_id);`,
   `CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(vendor_id, status);`,

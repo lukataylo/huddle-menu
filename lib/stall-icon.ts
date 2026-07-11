@@ -15,6 +15,14 @@ const RULES: Array<[RegExp, string]> = [
   [/🥐|🍞|bak(e|ery)|bread|pastry|croissant/iu, 'bakery'],
 ]
 
+/**
+ * The vendor's display art: the AI-generated logo when it exists,
+ * otherwise the route 302s to the closest hand-drawn /public/stalls icon.
+ */
+export function stallArtSrc(slug: string): string {
+  return `/api/vendor/${slug}/art`
+}
+
 export function stallIconPath(emoji: string, name: string): string {
   const haystack = `${emoji} ${name}`
   for (const [pattern, icon] of RULES) {

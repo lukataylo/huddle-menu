@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import QRCode from 'qrcode'
 import { formatMoney } from '@/lib/format'
-import { stallIconPath } from '@/lib/stall-icon'
+import { stallArtSrc } from '@/lib/stall-icon'
 import type { MenuItem, Order, OrderStatus } from '@/lib/types'
 
 interface VendorInfo {
@@ -134,11 +134,12 @@ export default function KitchenBoard({
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <h1 className="flex items-center gap-2 font-display text-2xl leading-none text-ink">
             <Image
-              src={stallIconPath(vendor.emoji, vendor.name)}
+              src={stallArtSrc(vendor.slug)}
               alt=""
               width={40}
               height={40}
-              className="h-10 w-10 shrink-0"
+              unoptimized
+              className="h-10 w-10 shrink-0 object-contain"
             />
             {vendor.name.toUpperCase()}
           </h1>

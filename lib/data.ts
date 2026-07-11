@@ -1,6 +1,56 @@
 import crypto from 'crypto'
 import { pool } from './db'
-import type { MenuItem, Order, OrderLineItem, OrderStatus, Vendor } from './types'
+import type { Market, MenuItem, Order, OrderLineItem, OrderStatus, Vendor } from './types'
+
+export async function getMarketById(id: string): Promise<Market | null> {
+  const { rows } = await pool.query<Market>(`SELECT * FROM markets WHERE id = $1`, [id])
+  return rows[0] ?? null
+}
+
+export async function getMarketBySlug(slug: string): Promise<Market | null> {
+  const { rows } = await pool.query<Market>(`SELECT * FROM markets WHERE slug = $1`, [slug])
+  return rows[0] ?? null
+}
+
+export interface MarketWithCount extends Market {
+  stall_count: number
+}
+
+export async function listMarkets(): Promise<MarketWithCount[]> {
+  const { rows } = await pool.query<MarketWithCount>(
+    `SELECT m.*, count(v.id)::int AS stall_count
+     FROM markets m LEFT JOIN vendors v ON v.market_id = m.id
+     GROUP BY m.id ORDER BY m.created_at`
+  )
+  return rows
+}
+
+/** Finds a market whose slug matches the name, or creates it. */
+export async function createOrGetMarket(name: string): Promise<Market> {
+  const slug = slugify(name)
+  const { rows } = await pool.query<Market>(
+    `INSERT INTO markets (slug, name) VALUES ($1, $2)
+     ON CONFLICT (slug) DO UPDATE SET slug = markets.slug RETURNING *`,
+    [slug, name]
+  )
+  return rows[0]
+}
+
+export async function getVendorArt(vendorId: string): Promise<Buffer | null> {
+  const { rows } = await pool.query<{ png: Buffer }>(
+    `SELECT png FROM vendor_art WHERE vendor_id = $1`,
+    [vendorId]
+  )
+  return rows[0]?.png ?? null
+}
+
+export async function setVendorArt(vendorId: string, png: Buffer): Promise<void> {
+  await pool.query(
+    `INSERT INTO vendor_art (vendor_id, png) VALUES ($1, $2)
+     ON CONFLICT (vendor_id) DO UPDATE SET png = EXCLUDED.png, created_at = now()`,
+    [vendorId, png]
+  )
+}
 
 export async function getVendorBySlug(slug: string): Promise<Vendor | null> {
   const { rows } = await pool.query<Vendor>(`SELECT * FROM vendors WHERE slug = $1`, [slug])
@@ -17,8 +67,15 @@ export interface VendorWithMenu {
   items: MenuItem[]
 }
 
-export async function listVendorsWithMenus(): Promise<VendorWithMenu[]> {
-  const vendors = await listVendors()
+export async function listVendorsWithMenus(marketId?: string): Promise<VendorWithMenu[]> {
+  const vendors = marketId
+    ? (
+        await pool.query<Vendor>(
+          `SELECT * FROM vendors WHERE market_id = $1 ORDER BY created_at`,
+          [marketId]
+        )
+      ).rows
+    : await listVendors()
   if (vendors.length === 0) return []
   const { rows: items } = await pool.query<MenuItem>(
     `SELECT * FROM menu_items WHERE vendor_id = ANY($1) ORDER BY sort, name`,
@@ -69,7 +126,8 @@ export async function createVendorWithMenu(
   name: string,
   emoji: string,
   currency: string,
-  items: NewMenuItem[]
+  items: NewMenuItem[],
+  marketId: string | null = null
 ): Promise<Vendor> {
   const adminToken = crypto.randomBytes(24).toString('base64url')
   const base = slugify(name)
@@ -80,9 +138,9 @@ export async function createVendorWithMenu(
     for (let attempt = 0; attempt < 5 && !vendor; attempt++) {
       const slug = attempt === 0 ? base : `${base}-${crypto.randomBytes(2).toString('hex')}`
       const { rows } = await client.query<Vendor>(
-        `INSERT INTO vendors (slug, admin_token, name, emoji, currency)
-         VALUES ($1, $2, $3, $4, $5) ON CONFLICT (slug) DO NOTHING RETURNING *`,
-        [slug, adminToken, name, emoji, currency]
+        `INSERT INTO vendors (slug, admin_token, name, emoji, currency, market_id)
+         VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (slug) DO NOTHING RETURNING *`,
+        [slug, adminToken, name, emoji, currency, marketId]
       )
       vendor = rows[0] ?? null
     }

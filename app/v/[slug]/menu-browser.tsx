@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatMoney } from '@/lib/format'
-import { stallIconPath } from '@/lib/stall-icon'
+import { stallArtSrc } from '@/lib/stall-icon'
+import PayMethodToggle, { type PayMethod } from '../../pay-method-toggle'
 import { rememberOrder } from '@/lib/loyalty'
 import type { MenuItem } from '@/lib/types'
 
@@ -20,6 +21,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [view, setView] = useState<'menu' | 'basket'>('menu')
   const [customerName, setCustomerName] = useState('')
+  const [payMethod, setPayMethod] = useState<PayMethod>('card')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,6 +63,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
         body: JSON.stringify({
           slug: vendor.slug,
           customerName: customerName.trim(),
+          payMethod,
           items: withPreOrder ? basket.map(({ item, quantity }) => ({ id: item.id, quantity })) : [],
         }),
       })
@@ -83,11 +86,12 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
       <header className="sticky top-0 z-10 border-b border-line bg-paper/95 px-5 py-4 backdrop-blur">
         <div className="flex items-center gap-3">
           <Image
-            src={stallIconPath(vendor.emoji, vendor.name)}
+            src={stallArtSrc(vendor.slug)}
             alt=""
             width={56}
             height={56}
-            className="h-14 w-14 shrink-0"
+            unoptimized
+            className="h-14 w-14 shrink-0 object-contain"
           />
           <div>
             <h1 className="font-display text-3xl leading-none text-ink">
@@ -211,6 +215,8 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
           </ul>
           {basket.length === 0 && <p className="text-midnight/60">Your basket is empty.</p>}
 
+          <PayMethodToggle value={payMethod} onChange={setPayMethod} />
+
           <label className="mt-6 block">
             <span className="mb-1 block text-sm font-medium text-midnight/80">
               Name for the queue <span className="text-midnight/50">(optional)</span>
@@ -263,7 +269,13 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
             disabled={submitting || basket.length === 0}
             className="flex w-full items-center justify-between rounded-2xl bg-ink px-5 py-3.5 font-bold text-white active:bg-ink-deep disabled:bg-ink/20"
           >
-            <span>{submitting ? 'Joining the queue…' : 'Join queue & pre-order'}</span>
+            <span>
+              {submitting
+                ? 'Joining the queue…'
+                : payMethod === 'cash'
+                  ? 'Join queue & pre-order'
+                  : 'Pay & join the queue'}
+            </span>
             <span>{formatMoney(totalPence, vendor.currency)}</span>
           </button>
         )}

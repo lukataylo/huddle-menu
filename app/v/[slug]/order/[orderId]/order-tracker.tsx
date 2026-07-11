@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatMoney } from '@/lib/format'
-import { stallIconPath } from '@/lib/stall-icon'
+import { stallArtSrc } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
 import { useNotificationPermission, useReadyBuzzer } from '@/lib/use-ready-buzzer'
 import type { OrderLineItem, OrderStatus } from '@/lib/types'
@@ -30,6 +30,7 @@ interface TrackedOrder {
   total_pence: number
   status: OrderStatus
   queue?: QueueInfo
+  awaiting_cash?: boolean
 }
 
 const STATUS_COPY: Record<OrderStatus, { title: string; detail: string }> = {
@@ -78,7 +79,13 @@ export default function OrderTracker({
     return () => clearInterval(interval)
   }, [order.id, order.status])
 
-  const copy = STATUS_COPY[order.status]
+  const copy =
+    order.status === 'pending' && order.awaiting_cash
+      ? {
+          title: 'Pay at the counter 💷',
+          detail: 'Show this screen and pay at the counter — your spot is confirmed as soon as you have.',
+        }
+      : STATUS_COPY[order.status]
   // 'preparing' still counts as being in the queue on the ticket view
   const stepIndex = Math.max(0, STEPS.findIndex((step) => step.key === order.status))
   const ahead = order.queue?.ahead ?? 0
@@ -189,11 +196,12 @@ export default function OrderTracker({
           </p>
         </div>
         <Image
-          src={stallIconPath(vendor.emoji, vendor.name)}
+          src={stallArtSrc(vendor.slug)}
           alt=""
           width={72}
           height={72}
-          className="h-18 w-18 shrink-0"
+          unoptimized
+          className="h-18 w-18 shrink-0 object-contain"
         />
       </div>
 

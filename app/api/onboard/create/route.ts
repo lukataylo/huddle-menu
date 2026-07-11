@@ -1,5 +1,12 @@
-import { NextResponse } from 'next/server'
-import { createVendorWithMenu, type NewMenuItem } from '@/lib/data'
+import { NextResponse, after } from 'next/server'
+import {
+  createOrGetMarket,
+  createVendorWithMenu,
+  getMarketById,
+  type NewMenuItem,
+} from '@/lib/data'
+import { generateAndSaveStallArt } from '@/lib/generate-art'
+import type { Market } from '@/lib/types'
 
 const MAX_ITEMS = 100
 
@@ -8,6 +15,9 @@ export async function POST(req: Request) {
   const name = typeof body?.name === 'string' ? body.name.trim().slice(0, 80) : ''
   const emoji = typeof body?.emoji === 'string' && body.emoji ? body.emoji.slice(0, 8) : '🍽️'
   const currency = typeof body?.currency === 'string' ? body.currency : 'GBP'
+  const marketId = typeof body?.marketId === 'string' ? body.marketId : null
+  const marketName =
+    typeof body?.marketName === 'string' ? body.marketName.trim().slice(0, 80) : ''
   const rawItems = Array.isArray(body?.items) ? body.items : []
 
   if (!name || rawItems.length === 0 || rawItems.length > MAX_ITEMS) {
@@ -37,11 +47,26 @@ export async function POST(req: Request) {
     })
   }
 
-  const vendor = await createVendorWithMenu(name, emoji, currency, items)
+  // Stalls can join an existing market, create one on the spot, or stay independent.
+  let market: Market | null = null
+  if (marketId) {
+    market = await getMarketById(marketId)
+    if (!market) {
+      return NextResponse.json({ error: 'That market no longer exists' }, { status: 400 })
+    }
+  } else if (marketName) {
+    market = await createOrGetMarket(marketName)
+  }
+
+  const vendor = await createVendorWithMenu(name, emoji, currency, items, market?.id ?? null)
+  // Draw the stall's hand-drawn logo after the response is sent.
+  after(() => generateAndSaveStallArt(vendor))
   return NextResponse.json({
     slug: vendor.slug,
     adminToken: vendor.admin_token,
     menuPath: `/v/${vendor.slug}`,
     kitchenPath: `/v/${vendor.slug}/kitchen?token=${encodeURIComponent(vendor.admin_token)}`,
+    marketName: market?.name ?? null,
+    marketPath: market ? `/m/${market.slug}` : null,
   })
 }
