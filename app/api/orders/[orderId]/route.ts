@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getOrderWithVendor } from '@/lib/data'
+import { getOrderWithVendor, getQueueStats } from '@/lib/data'
 
 // The order id is an unguessable uuid, so exposing the order's own
 // details to whoever holds it is the intended access model.
@@ -12,7 +12,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orderId
   if (!order) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   }
+  const queue = await getQueueStats(order.vendor_id, order.order_number)
   return NextResponse.json({
+    queue,
     id: order.id,
     order_number: order.order_number,
     customer_name: order.customer_name,

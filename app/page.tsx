@@ -14,7 +14,7 @@ export default async function Home() {
       <header>
         <h1 className="font-display text-4xl leading-none text-ink">HUDDLE MENU</h1>
         <p className="mt-1 font-medium text-midnight/70">
-          Discover amazing food stalls — scan, order, skip the queue.
+          Scan the QR, join the queue, get buzzed when it&apos;s your turn.
         </p>
       </header>
 

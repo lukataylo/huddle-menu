@@ -50,8 +50,8 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
     })
   }
 
-  async function checkout() {
-    if (basket.length === 0 || submitting) return
+  async function joinQueue(withPreOrder: boolean) {
+    if (submitting) return
     setSubmitting(true)
     setError(null)
     try {
@@ -61,7 +61,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
         body: JSON.stringify({
           slug: vendor.slug,
           customerName: customerName.trim(),
-          items: basket.map(({ item, quantity }) => ({ id: item.id, quantity })),
+          items: withPreOrder ? basket.map(({ item, quantity }) => ({ id: item.id, quantity })) : [],
         }),
       })
       const data = await res.json()
@@ -94,7 +94,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
               {vendor.name.toUpperCase()}
             </h1>
             <p className="mt-1 text-sm font-medium text-midnight/60">
-              Order &amp; pay from your phone
+              Browse the menu &amp; join the queue from your phone
             </p>
           </div>
         </div>
@@ -173,7 +173,10 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
           <button onClick={() => setView('menu')} className="mb-4 text-sm font-medium text-ink">
             ← Back to menu
           </button>
-          <h2 className="mb-3 text-lg font-bold">Your order</h2>
+          <h2 className="mb-3 text-lg font-bold">Your pre-order</h2>
+          <p className="mb-3 text-sm text-midnight/60">
+            We&apos;ll have it started so it&apos;s ready when you reach the front.
+          </p>
           <ul className="space-y-2">
             {basket.map(({ item, quantity }) => (
               <li
@@ -210,7 +213,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
 
           <label className="mt-6 block">
             <span className="mb-1 block text-sm font-medium text-midnight/80">
-              Name for the order <span className="text-midnight/50">(optional)</span>
+              Name for the queue <span className="text-midnight/50">(optional)</span>
             </span>
             <input
               value={customerName}
@@ -227,9 +230,9 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
         </main>
       )}
 
-      {totalCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg md:max-w-3xl border-t border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          {view === 'menu' ? (
+      <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg md:max-w-3xl border-t border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        {view === 'menu' ? (
+          totalCount > 0 ? (
             <button
               onClick={() => setView('basket')}
               className="flex w-full items-center gap-3 rounded-2xl bg-ink px-5 py-3.5 font-bold text-white active:bg-ink-deep"
@@ -238,21 +241,33 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
                 <path d="M6 8h12l-1 12H7L6 8z" />
                 <path d="M9 8V6a3 3 0 0 1 6 0v2" />
               </svg>
-              <span className="flex-1 text-left">View Cart ({totalCount})</span>
+              <span className="flex-1 text-left">Review pre-order ({totalCount})</span>
               <span>{formatMoney(totalPence, vendor.currency)}</span>
             </button>
           ) : (
             <button
-              onClick={checkout}
-              disabled={submitting || basket.length === 0}
-              className="flex w-full items-center justify-between rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep disabled:bg-ink/20"
+              onClick={() => joinQueue(false)}
+              disabled={submitting}
+              className="flex w-full items-center justify-center gap-3 rounded-2xl bg-ink px-5 py-3.5 font-bold text-white active:bg-ink-deep disabled:bg-ink/20"
             >
-              <span>{submitting ? 'Starting payment…' : 'Pay now'}</span>
-              <span>{formatMoney(totalPence, vendor.currency)}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3.5 2" />
+              </svg>
+              {submitting ? 'Joining the queue…' : 'Join the queue'}
             </button>
-          )}
-        </div>
-      )}
+          )
+        ) : (
+          <button
+            onClick={() => joinQueue(true)}
+            disabled={submitting || basket.length === 0}
+            className="flex w-full items-center justify-between rounded-2xl bg-ink px-5 py-3.5 font-bold text-white active:bg-ink-deep disabled:bg-ink/20"
+          >
+            <span>{submitting ? 'Joining the queue…' : 'Join queue & pre-order'}</span>
+            <span>{formatMoney(totalPence, vendor.currency)}</span>
+          </button>
+        )}
+      </div>
     </div>
   )
 }

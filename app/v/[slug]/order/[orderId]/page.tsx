@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getOrder, getVendorBySlug } from '@/lib/data'
+import { getOrder, getQueueStats, getVendorBySlug } from '@/lib/data'
 import OrderTracker from './order-tracker'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = { title: 'Your order' }
+export const metadata: Metadata = { title: 'Your place in the queue' }
 
 export default async function OrderPage({
   params,
@@ -18,9 +18,11 @@ export default async function OrderPage({
   if (!/^[0-9a-f-]{36}$/i.test(orderId)) notFound()
   const order = await getOrder(orderId)
   if (!order || order.vendor_id !== vendor.id) notFound()
+  const queue = await getQueueStats(vendor.id, order.order_number)
 
   return (
     <OrderTracker
+      initialQueue={queue}
       vendor={{ slug: vendor.slug, name: vendor.name, emoji: vendor.emoji, currency: vendor.currency }}
       initialOrder={{
         id: order.id,

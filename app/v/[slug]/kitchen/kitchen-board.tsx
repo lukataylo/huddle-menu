@@ -15,27 +15,27 @@ interface VendorInfo {
 }
 
 type Tab = 'orders' | 'menu' | 'qr'
-type OrderTab = 'incoming' | 'active' | 'done'
+type OrderTab = 'waiting' | 'called' | 'done'
 
 const NEXT_ACTION: Partial<Record<OrderStatus, { label: string; to: OrderStatus }>> = {
-  pending: { label: 'Mark paid', to: 'paid' },
-  paid: { label: 'Start preparing', to: 'preparing' },
-  preparing: { label: 'Mark ready', to: 'ready' },
-  ready: { label: 'Picked up', to: 'collected' },
+  pending: { label: 'Confirm spot', to: 'paid' },
+  paid: { label: 'Call up', to: 'ready' },
+  preparing: { label: 'Call up', to: 'ready' },
+  ready: { label: 'Served', to: 'collected' },
 }
 
 const STATUS_BADGE: Record<OrderStatus, { label: string; className: string }> = {
   pending: { label: 'Awaiting payment', className: 'bg-ink/10 text-ink' },
-  paid: { label: 'New', className: 'bg-ink text-white' },
-  preparing: { label: 'Preparing', className: 'bg-amber-500 text-white' },
-  ready: { label: 'Ready', className: 'bg-green-600 text-white' },
-  collected: { label: 'Picked up', className: 'bg-ink/10 text-midnight/60' },
-  cancelled: { label: 'Cancelled', className: 'bg-red-100 text-red-700' },
+  paid: { label: 'Waiting', className: 'bg-ink text-white' },
+  preparing: { label: 'Waiting', className: 'bg-ink text-white' },
+  ready: { label: 'Called', className: 'bg-green-600 text-white' },
+  collected: { label: 'Served', className: 'bg-ink/10 text-midnight/60' },
+  cancelled: { label: 'No-show', className: 'bg-red-100 text-red-700' },
 }
 
 const ORDER_TABS: Record<OrderTab, { label: string; statuses: OrderStatus[] }> = {
-  incoming: { label: 'Incoming', statuses: ['paid', 'pending'] },
-  active: { label: 'Active', statuses: ['preparing', 'ready'] },
+  waiting: { label: 'Queue', statuses: ['paid', 'preparing', 'pending'] },
+  called: { label: 'Called', statuses: ['ready'] },
   done: { label: 'Done', statuses: ['collected', 'cancelled'] },
 }
 
@@ -49,7 +49,7 @@ export default function KitchenBoard({
   initialMenuItems: MenuItem[]
 }) {
   const [tab, setTab] = useState<Tab>('orders')
-  const [orderTab, setOrderTab] = useState<OrderTab>('incoming')
+  const [orderTab, setOrderTab] = useState<OrderTab>('waiting')
   const [orders, setOrders] = useState<Order[]>([])
   const [menuItems, setMenuItems] = useState(initialMenuItems)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
@@ -118,11 +118,15 @@ export default function KitchenBoard({
   }
 
   const tabCounts: Record<OrderTab, number> = {
-    incoming: orders.filter((o) => ORDER_TABS.incoming.statuses.includes(o.status)).length,
-    active: orders.filter((o) => ORDER_TABS.active.statuses.includes(o.status)).length,
+    waiting: orders.filter((o) => ORDER_TABS.waiting.statuses.includes(o.status)).length,
+    called: orders.filter((o) => ORDER_TABS.called.statuses.includes(o.status)).length,
     done: orders.filter((o) => ORDER_TABS.done.statuses.includes(o.status)).length,
   }
   const visibleOrders = orders.filter((o) => ORDER_TABS[orderTab].statuses.includes(o.status))
+  const nextWaiting = orders.find((o) => o.status === 'paid' || o.status === 'preparing')
+  const nowServing = orders
+    .filter((o) => o.status === 'ready' || o.status === 'collected')
+    .reduce<number | null>((max, o) => (max === null || o.order_number > max ? o.order_number : max), null)
 
   return (
     <div className="min-h-dvh bg-paper text-midnight">
@@ -147,7 +151,7 @@ export default function KitchenBoard({
                   tab === t ? 'bg-ink text-white' : 'text-ink'
                 }`}
               >
-                {t === 'qr' ? 'QR code' : t}
+                {t === 'qr' ? 'QR code' : t === 'orders' ? 'Queue' : t}
               </button>
             ))}
           </nav>
@@ -163,6 +167,24 @@ export default function KitchenBoard({
 
         {tab === 'orders' && (
           <>
+            <div className="mb-5 flex items-center gap-4 rounded-2xl border-2 border-ink bg-card p-4">
+              <div className="flex-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-midnight/50">
+                  Now serving
+                </p>
+                <p className="font-display text-5xl leading-none text-ink">
+                  {nowServing ? `#${nowServing}` : '—'}
+                </p>
+              </div>
+              <button
+                onClick={() => nextWaiting && moveOrder(nextWaiting.id, 'ready')}
+                disabled={!nextWaiting}
+                className="rounded-2xl bg-ink px-6 py-4 text-lg font-extrabold text-white active:bg-ink-deep disabled:bg-ink/20"
+              >
+                📣 Call next{nextWaiting ? ` (#${nextWaiting.order_number})` : ''}
+              </button>
+            </div>
+
             <div className="mb-5 flex gap-2">
               {(Object.keys(ORDER_TABS) as OrderTab[]).map((t) => (
                 <button
@@ -186,7 +208,7 @@ export default function KitchenBoard({
 
             {visibleOrders.length === 0 ? (
               <p className="mt-10 text-center font-medium text-midnight/50">
-                No {ORDER_TABS[orderTab].label.toLowerCase()} orders right now.
+                Nobody in “{ORDER_TABS[orderTab].label}” right now.
               </p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -203,20 +225,28 @@ export default function KitchenBoard({
                             {badge.label}
                           </span>
                           <p className="mt-1.5 text-xl font-extrabold text-ink">
-                            Order #{order.order_number}
+                            Ticket #{order.order_number}
                           </p>
                         </div>
-                        <p className="text-lg font-extrabold">
-                          {formatMoney(order.total_pence, vendor.currency)}
-                        </p>
+                        {order.total_pence > 0 && (
+                          <p className="text-lg font-extrabold">
+                            {formatMoney(order.total_pence, vendor.currency)}
+                          </p>
+                        )}
                       </div>
-                      <ul className="mt-2 space-y-0.5 text-sm font-medium text-midnight/80">
-                        {order.items.map((item) => (
-                          <li key={item.id}>
-                            {item.quantity} × {item.name}
-                          </li>
-                        ))}
-                      </ul>
+                      {order.items.length > 0 ? (
+                        <ul className="mt-2 space-y-0.5 text-sm font-medium text-midnight/80">
+                          {order.items.map((item) => (
+                            <li key={item.id}>
+                              {item.quantity} × {item.name}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-2 text-sm font-medium text-midnight/50">
+                          Walk-up — no pre-order
+                        </p>
+                      )}
                       <p className="mt-2 text-sm font-bold text-midnight/60">
                         👤 {order.customer_name}
                       </p>
@@ -229,12 +259,12 @@ export default function KitchenBoard({
                             {action.label}
                           </button>
                         )}
-                        {['pending', 'paid'].includes(order.status) && (
+                        {['pending', 'paid', 'preparing', 'ready'].includes(order.status) && (
                           <button
                             onClick={() => moveOrder(order.id, 'cancelled')}
                             className="rounded-xl border-2 border-line px-3 py-2.5 text-sm font-bold text-midnight/60 active:bg-paper"
                           >
-                            Cancel
+                            No-show
                           </button>
                         )}
                       </div>

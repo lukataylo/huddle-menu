@@ -180,6 +180,34 @@ export async function updateOrderStatus(
   return rows[0] ?? null
 }
 
+export interface QueueStats {
+  /** Highest ticket number currently called (or recently served) — the "now serving" board. */
+  now_serving: number | null
+  /** Tickets still waiting ahead of the given ticket (all waiting if no ticket given). */
+  ahead: number
+  waiting_count: number
+}
+
+// Queue semantics reuse order statuses: paid = waiting, ready = called,
+// collected = served, cancelled = left/no-show.
+export async function getQueueStats(vendorId: string, beforeOrderNumber?: number): Promise<QueueStats> {
+  const { rows } = await pool.query<{ now_serving: number | null; ahead: string; waiting_count: string }>(
+    `SELECT
+       (SELECT MAX(order_number) FROM orders
+        WHERE vendor_id = $1 AND status IN ('ready', 'collected')
+          AND updated_at > now() - interval '6 hours') AS now_serving,
+       (SELECT COUNT(*) FROM orders
+        WHERE vendor_id = $1 AND status = 'paid' AND order_number < COALESCE($2, 2147483647)) AS ahead,
+       (SELECT COUNT(*) FROM orders WHERE vendor_id = $1 AND status = 'paid') AS waiting_count`,
+    [vendorId, beforeOrderNumber ?? null]
+  )
+  return {
+    now_serving: rows[0].now_serving,
+    ahead: Number(rows[0].ahead),
+    waiting_count: Number(rows[0].waiting_count),
+  }
+}
+
 /** Orders the kitchen cares about: everything active, plus recently finished ones. */
 export async function listKitchenOrders(vendorId: string): Promise<Order[]> {
   const { rows } = await pool.query<Order>(

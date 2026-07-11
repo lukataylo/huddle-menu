@@ -26,13 +26,11 @@ export async function POST(req: Request) {
   // Name is optional — the order number is the real claim ticket.
   const customerName =
     (typeof body.customerName === 'string' ? body.customerName.trim().slice(0, 60) : '') || 'Guest'
+  // Empty items = joining the queue without a pre-order.
   const rawItems = Array.isArray(body.items) ? body.items : []
 
-  if (!slug || rawItems.length === 0 || rawItems.length > MAX_LINE_ITEMS) {
-    return NextResponse.json(
-      { error: 'slug and at least one item are required' },
-      { status: 400 }
-    )
+  if (!slug || rawItems.length > MAX_LINE_ITEMS) {
+    return NextResponse.json({ error: 'slug is required' }, { status: 400 })
   }
 
   const requested = new Map<string, number>()
@@ -51,28 +49,32 @@ export async function POST(req: Request) {
   }
 
   // Re-price everything server-side against currently-available items.
-  const { rows: menuItems } = await pool.query<MenuItem>(
-    `SELECT * FROM menu_items WHERE vendor_id = $1 AND available = true AND id = ANY($2)`,
-    [vendor.id, [...requested.keys()]]
-  )
-  if (menuItems.length !== requested.size) {
-    return NextResponse.json(
-      { error: 'Some items are no longer available. Please refresh the menu.' },
-      { status: 409 }
+  let lineItems: OrderLineItem[] = []
+  if (requested.size > 0) {
+    const { rows: menuItems } = await pool.query<MenuItem>(
+      `SELECT * FROM menu_items WHERE vendor_id = $1 AND available = true AND id = ANY($2)`,
+      [vendor.id, [...requested.keys()]]
     )
+    if (menuItems.length !== requested.size) {
+      return NextResponse.json(
+        { error: 'Some items are no longer available. Please refresh the menu.' },
+        { status: 409 }
+      )
+    }
+    lineItems = menuItems.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price_pence: item.price_pence,
+      quantity: requested.get(item.id)!,
+    }))
   }
 
-  const lineItems: OrderLineItem[] = menuItems.map((item) => ({
-    id: item.id,
-    name: item.name,
-    price_pence: item.price_pence,
-    quantity: requested.get(item.id)!,
-  }))
+  // Queue tickets are free to create; payments only kick in for priced
+  // pre-orders when Mollie is configured.
+  const wantsPayment = isMollieConfigured() && lineItems.length > 0
+  const order = await createOrder(vendor, customerName, lineItems, wantsPayment ? 'pending' : 'paid')
 
-  // Without Mollie configured (local dev), orders are created already paid.
-  const order = await createOrder(vendor, customerName, lineItems, isMollieConfigured() ? 'pending' : 'paid')
-
-  if (!isMollieConfigured()) {
+  if (!wantsPayment) {
     return NextResponse.json({ orderId: order.id, checkoutUrl: null })
   }
 

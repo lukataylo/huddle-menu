@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Huddle Menu",
-  description: "QR-code ordering for street food stalls",
+  title: "Huddle",
+  description: "Digital queueing for restaurants — scan, join the queue, get buzzed",
 };
 
 export default function RootLayout({
