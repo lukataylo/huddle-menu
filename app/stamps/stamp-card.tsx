@@ -93,9 +93,7 @@ export default function StampCard() {
             className="mt-6 rounded-2xl border border-line bg-card p-5 shadow-sm"
           >
             <div className="flex items-baseline justify-between">
-              <h2 className="font-bold">
-                {vendor.emoji} {vendor.name}
-              </h2>
+              <h2 className="font-bold">{vendor.name}</h2>
               <span className="text-sm text-midnight/60">
                 {count} order{count === 1 ? '' : 's'}
               </span>
@@ -110,7 +108,7 @@ export default function StampCard() {
                       : 'border-dashed border-line text-ink/30'
                   }`}
                 >
-                  {i < onCard ? vendor.emoji : i + 1}
+                  {i < onCard ? '✓' : i + 1}
                 </div>
               ))}
             </div>
@@ -132,7 +130,7 @@ export default function StampCard() {
               <li key={order.id} className="flex items-center justify-between py-2.5 text-sm">
                 <div>
                   <p className="font-medium">
-                    {order.vendor.emoji} {order.vendor.name} · #{order.order_number}
+                    {order.vendor.name} · #{order.order_number}
                   </p>
                   <p className="text-midnight/60">
                     {new Date(order.created_at).toLocaleDateString()} ·{' '}

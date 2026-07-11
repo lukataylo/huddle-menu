@@ -27,12 +27,12 @@ export interface MarketOption {
   name: string
 }
 
-const EMOJI_OPTIONS = ['🍜', '🥟', '🌮', '🍔', '🍕', '🥙', '🍛', '🍩', '☕', '🍦', '🥘', '🍗']
+import { STALL_TYPES } from '@/lib/stall-icon'
 
 export default function OnboardWizard({ markets }: { markets: MarketOption[] }) {
   const [step, setStep] = useState<'details' | 'confirm' | 'done'>('details')
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState('🍜')
+  const [stallType, setStallType] = useState('noodle')
   // '' = independent stall, 'new' = creating a market, otherwise a market id.
   const [marketChoice, setMarketChoice] = useState('')
   const [newMarketName, setNewMarketName] = useState('')
@@ -96,7 +96,7 @@ export default function OnboardWizard({ markets }: { markets: MarketOption[] }) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
-          emoji,
+          emoji: stallType,
           currency: 'GBP',
           items: validItems,
           marketId: marketChoice && marketChoice !== 'new' ? marketChoice : undefined,
@@ -141,19 +141,30 @@ export default function OnboardWizard({ markets }: { markets: MarketOption[] }) 
           </label>
 
           <div>
-            <span className="mb-1 block text-sm font-medium text-midnight/80">Pick an emoji</span>
-            <div className="flex flex-wrap gap-2">
-              {EMOJI_OPTIONS.map((option) => (
+            <span className="mb-1 block text-sm font-medium text-midnight/80">
+              What kind of stall?
+            </span>
+            <div className="grid grid-cols-4 gap-2">
+              {STALL_TYPES.map((type) => (
                 <button
-                  key={option}
-                  onClick={() => setEmoji(option)}
-                  className={`h-11 w-11 rounded-xl border text-xl ${
-                    emoji === option
+                  key={type.key}
+                  onClick={() => setStallType(type.key)}
+                  className={`flex flex-col items-center gap-1 rounded-xl border p-2 ${
+                    stallType === type.key
                       ? 'border-ink bg-paper ring-2 ring-ink/20'
                       : 'border-line bg-card'
                   }`}
                 >
-                  {option}
+                  <Image
+                    src={`/stalls/${type.key}.png`}
+                    alt=""
+                    width={44}
+                    height={44}
+                    className="h-11 w-11 object-contain"
+                  />
+                  <span className="text-[10px] font-bold leading-tight text-midnight/70">
+                    {type.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -333,7 +344,7 @@ export default function OnboardWizard({ markets }: { markets: MarketOption[] }) 
             disabled={creating || !items.some((item) => item.name.trim())}
             className="mt-6 w-full rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep disabled:bg-ink/20"
           >
-            {creating ? 'Creating your stall…' : `Create ${emoji} ${name || 'my stall'}`}
+            {creating ? 'Creating your stall…' : `Create ${name || 'my stall'}`}
           </button>
         </div>
       )}
@@ -342,7 +353,7 @@ export default function OnboardWizard({ markets }: { markets: MarketOption[] }) 
         <div className="mt-6 space-y-4">
           <div className="rounded-2xl border border-green-200 bg-green-50 p-5 text-center">
             <p className="text-3xl">🎉</p>
-            <h2 className="mt-2 text-lg font-bold">{emoji} {name} is live!</h2>
+            <h2 className="mt-2 text-lg font-bold">{name} is live!</h2>
             {created.qrDataUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img

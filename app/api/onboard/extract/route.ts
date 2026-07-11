@@ -44,8 +44,55 @@ const MENU_SCHEMA = {
   additionalProperties: false,
 } as const
 
+const EXTRACT_PROMPT =
+  "This is a food vendor's menu. Extract every menu item you can actually read in the image: name, description (empty string if none printed), price in pence (e.g. £5.50 → 550), and the menu section it belongs to. Keep the original wording and item order. Only include items genuinely visible in the image — if there is no readable menu, return an empty items array. Never invent items."
+
+// Fallback extractor: OpenAI vision with the same JSON schema (images only).
+async function extractWithOpenAI(
+  apiKey: string,
+  image: string,
+  mediaType: AllowedMediaType
+): Promise<{ items: unknown } | { error: string; status: number }> {
+  if (mediaType === 'application/pdf') {
+    return { error: 'PDF import is unavailable right now — take a photo of the menu instead.', status: 503 }
+  }
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      max_tokens: 8000,
+      response_format: {
+        type: 'json_schema',
+        json_schema: { name: 'menu', strict: true, schema: MENU_SCHEMA },
+      },
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: `data:${mediaType};base64,${image}` } },
+            { type: 'text', text: EXTRACT_PROMPT },
+          ],
+        },
+      ],
+    }),
+  })
+  if (!res.ok) {
+    console.error('[onboard extract] OpenAI request failed:', res.status, await res.text())
+    return { error: 'Could not read the menu photo. Try a clearer photo, or add items manually.', status: 502 }
+  }
+  const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> }
+  try {
+    const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? '')
+    return { items: parsed.items }
+  } catch {
+    return { error: 'Could not read the menu photo. Try a clearer photo, or add items manually.', status: 502 }
+  }
+}
+
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const openaiKey = process.env.OPENAI_KEY ?? process.env.OPENAI_API_KEY
+  if (!process.env.ANTHROPIC_API_KEY && !openaiKey) {
     return NextResponse.json(
       { error: 'AI menu extraction is not configured. Add your items manually instead.' },
       { status: 503 }
@@ -61,6 +108,15 @@ export async function POST(req: Request) {
       { error: 'Please upload a JPEG, PNG, WebP photo or PDF under 5MB.' },
       { status: 400 }
     )
+  }
+
+  // Anthropic preferred (handles PDFs too); OpenAI vision as fallback.
+  if (!process.env.ANTHROPIC_API_KEY && openaiKey) {
+    const result = await extractWithOpenAI(openaiKey, image, mediaType)
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
+    }
+    return NextResponse.json(result)
   }
 
   const menuBlock: Anthropic.ContentBlockParam =
@@ -80,10 +136,7 @@ export async function POST(req: Request) {
           role: 'user',
           content: [
             menuBlock,
-            {
-              type: 'text',
-              text: "This is a food vendor's menu. Extract every menu item you can read: name, description (empty string if none printed), price in pence (e.g. £5.50 → 550), and the menu section it belongs to. Keep the original wording and item order.",
-            },
+            { type: 'text', text: EXTRACT_PROMPT },
           ],
         },
       ],

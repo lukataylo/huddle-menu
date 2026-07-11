@@ -226,9 +226,7 @@ export default function OrderTracker({
       <div className="mt-4 flex items-center justify-between rounded-3xl border-2 border-line bg-card p-5">
         <div>
           <h2 className="font-display text-lg text-ink">QUEUEING AT</h2>
-          <p className="mt-1 text-lg font-extrabold">
-            {vendor.emoji} {vendor.name}
-          </p>
+          <p className="mt-1 text-lg font-extrabold">{vendor.name}</p>
         </div>
         <Image
           src={stallArtSrc(vendor.slug)}

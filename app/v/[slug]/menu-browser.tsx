@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatMoney } from '@/lib/format'
 import { stallArtSrc } from '@/lib/stall-icon'
-import PayMethodToggle, { type PayMethod } from '../../pay-method-toggle'
 import { rememberOrder } from '@/lib/loyalty'
 import type { MenuItem } from '@/lib/types'
 
@@ -19,13 +18,11 @@ interface VendorInfo {
 export default function MenuBrowser({
   vendor,
   items,
-  paymentsEnabled = false,
   queue,
   popularIds = [],
 }: {
   vendor: VendorInfo
   items: MenuItem[]
-  paymentsEnabled?: boolean
   queue?: { waiting: number; nowServing: number | null }
   popularIds?: string[]
 }) {
@@ -33,8 +30,6 @@ export default function MenuBrowser({
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [view, setView] = useState<'menu' | 'basket'>('menu')
   const [customerName, setCustomerName] = useState('')
-  // Pay at the till is the default; online payment is opt-in when configured.
-  const [payMethod, setPayMethod] = useState<PayMethod>('cash')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -76,7 +71,7 @@ export default function MenuBrowser({
         body: JSON.stringify({
           slug: vendor.slug,
           customerName: customerName.trim(),
-          payMethod,
+          payMethod: 'cash',
           items: withPreOrder ? basket.map(({ item, quantity }) => ({ id: item.id, quantity })) : [],
         }),
       })
@@ -244,13 +239,9 @@ export default function MenuBrowser({
           </ul>
           {basket.length === 0 && <p className="text-midnight/60">Your basket is empty.</p>}
 
-          {paymentsEnabled ? (
-            <PayMethodToggle value={payMethod} onChange={setPayMethod} />
-          ) : (
-            <p className="mt-6 rounded-xl border border-line bg-card px-4 py-3 text-sm font-medium text-midnight/70">
-              💷 Pay at the till when you collect — cash or card.
-            </p>
-          )}
+          <p className="mt-6 rounded-xl border border-line bg-card px-4 py-3 text-sm font-medium text-midnight/70">
+            💷 Pay at the till when you collect — cash or card.
+          </p>
 
           <label className="mt-6 block">
             <span className="mb-1 block text-sm font-medium text-midnight/80">
@@ -304,13 +295,7 @@ export default function MenuBrowser({
             disabled={submitting || basket.length === 0}
             className="flex w-full items-center justify-between rounded-2xl bg-ink px-5 py-3.5 font-bold text-white active:bg-ink-deep disabled:bg-ink/20"
           >
-            <span>
-              {submitting
-                ? 'Joining the queue…'
-                : payMethod === 'cash'
-                  ? 'Join queue & pre-order'
-                  : 'Pay & join the queue'}
-            </span>
+            <span>{submitting ? 'Joining the queue…' : 'Join queue & pre-order'}</span>
             <span>{formatMoney(totalPence, vendor.currency)}</span>
           </button>
         )}

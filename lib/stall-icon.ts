@@ -23,7 +23,25 @@ export function stallArtSrc(slug: string): string {
   return `/api/vendor/${slug}/art`
 }
 
+/** The hand-drawn stall-type asset bank in /public/stalls. */
+export const STALL_TYPES = [
+  { key: 'noodle', label: 'Noodles & Asian' },
+  { key: 'burger', label: 'Burgers & Grill' },
+  { key: 'pizza', label: 'Pizza' },
+  { key: 'taco', label: 'Tacos & Wraps' },
+  { key: 'sandwich', label: 'Sandwiches' },
+  { key: 'seafood', label: 'Seafood' },
+  { key: 'bakery', label: 'Bakery' },
+  { key: 'dessert', label: 'Desserts' },
+  { key: 'coffee', label: 'Coffee' },
+  { key: 'drinks', label: 'Drinks' },
+  { key: 'cheese', label: 'Cheese & Deli' },
+  { key: 'fruitveg', label: 'Fruit & Veg' },
+] as const
+
 export function stallIconPath(emoji: string, name: string): string {
+  // New vendors store a stall-type key directly; legacy vendors stored an emoji.
+  if (STALL_TYPES.some((type) => type.key === emoji)) return `/stalls/${emoji}.png`
   const haystack = `${emoji} ${name}`
   for (const [pattern, icon] of RULES) {
     if (pattern.test(haystack)) return `/stalls/${icon}.png`

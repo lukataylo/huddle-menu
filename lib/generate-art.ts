@@ -36,7 +36,7 @@ export async function generateAndSaveStallArt(vendor: Vendor): Promise<void> {
       },
       body: JSON.stringify({
         model: 'gpt-image-2',
-        prompt: `${STYLE} The subject: a signature dish or icon for a food stall called "${vendor.name}" (${vendor.emoji}).`,
+        prompt: `${STYLE} The subject: a signature dish or icon for a food stall called "${vendor.name}" (stall type: ${vendor.emoji}).`,
         size: '1024x1024',
         quality: 'medium',
         output_format: 'png',
