@@ -14,7 +14,14 @@ interface VendorInfo {
   currency: string
 }
 
-type Tab = 'orders' | 'menu' | 'qr'
+type Tab = 'orders' | 'sales' | 'menu' | 'qr'
+
+interface VendorSales {
+  today_orders: number
+  today_pence: number
+  total_orders: number
+  total_pence: number
+}
 type OrderTab = 'waiting' | 'called' | 'done'
 
 interface ItemDraft {
@@ -66,6 +73,8 @@ export default function KitchenBoard({
   const [error, setError] = useState<string | null>(null)
   const [soundOn, setSoundOn] = useState(true)
   const [isOpen, setIsOpen] = useState(initialOpen)
+  const [sales, setSales] = useState<VendorSales | null>(null)
+  const [history, setHistory] = useState<Order[]>([])
   // Menu editing: which item is being edited ('new' = adding), and its draft.
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<ItemDraft>({ name: '', description: '', price: '', category: 'Menu' })
@@ -173,6 +182,23 @@ export default function KitchenBoard({
       refreshOrders()
     }
   }
+
+  useEffect(() => {
+    if (tab !== 'sales') return
+    let cancelled = false
+    fetch(`${apiBase}/history?token=${encodeURIComponent(token)}`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) {
+          setSales(data.sales)
+          setHistory(data.orders)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [tab, apiBase, token])
 
   async function toggleOpen() {
     const next = !isOpen
@@ -316,7 +342,7 @@ export default function KitchenBoard({
               {soundOn ? '🔔' : '🔕'}
             </button>
             <nav className="flex gap-1 rounded-xl border-2 border-line bg-paper p-1 text-sm font-bold">
-              {(['orders', 'menu', 'qr'] as Tab[]).map((t) => (
+              {(['orders', 'sales', 'menu', 'qr'] as Tab[]).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
@@ -448,6 +474,61 @@ export default function KitchenBoard({
               </div>
             )}
           </>
+        )}
+
+        {tab === 'sales' && (
+          <div className="mx-auto max-w-xl">
+            {sales && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border-2 border-ink bg-card p-4 text-center">
+                  <p className="font-display text-4xl leading-none text-ink">
+                    {formatMoney(sales.today_pence, vendor.currency)}
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-midnight/60">
+                    today · {sales.today_orders} order{sales.today_orders === 1 ? '' : 's'}
+                  </p>
+                </div>
+                <div className="rounded-2xl border-2 border-line bg-card p-4 text-center">
+                  <p className="font-display text-4xl leading-none text-ink">
+                    {formatMoney(sales.total_pence, vendor.currency)}
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-midnight/60">
+                    all time · {sales.total_orders} order{sales.total_orders === 1 ? '' : 's'}
+                  </p>
+                </div>
+              </div>
+            )}
+            <h2 className="mt-6 text-sm font-semibold uppercase tracking-widest text-midnight/40">
+              Order history
+            </h2>
+            <ul className="mt-2 divide-y divide-line/70">
+              {history.map((order) => (
+                <li key={order.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <div className="min-w-0">
+                    <p className="font-bold">
+                      #{order.order_number}
+                      {order.customer_name !== 'Guest' && ` · ${order.customer_name}`}
+                    </p>
+                    <p className="truncate text-midnight/60">
+                      {order.items.length === 0
+                        ? 'Walk-up ticket'
+                        : order.items.map((item) => `${item.quantity}× ${item.name}`).join(', ')}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="font-bold">{formatMoney(order.total_pence, vendor.currency)}</p>
+                    <p className="text-xs text-midnight/50">
+                      {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
+                      · {STATUS_BADGE[order.status].label}
+                    </p>
+                  </div>
+                </li>
+              ))}
+              {history.length === 0 && (
+                <li className="py-4 text-sm text-midnight/60">No orders yet today.</li>
+              )}
+            </ul>
+          </div>
         )}
 
         {tab === 'menu' && (

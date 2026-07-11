@@ -366,6 +366,47 @@ export async function deleteMenuItem(vendorId: string, itemId: string): Promise<
   return (rowCount ?? 0) > 0
 }
 
+export interface VendorSales {
+  today_orders: number
+  today_pence: number
+  total_orders: number
+  total_pence: number
+}
+
+/** Money view: revenue counts only orders that were actually paid/served. */
+export async function getVendorSales(vendorId: string): Promise<VendorSales> {
+  const { rows } = await pool.query<{
+    today_orders: string
+    today_pence: string
+    total_orders: string
+    total_pence: string
+  }>(
+    `SELECT
+       count(*) FILTER (WHERE created_at >= date_trunc('day', now())) AS today_orders,
+       COALESCE(SUM(total_pence) FILTER (WHERE created_at >= date_trunc('day', now())), 0) AS today_pence,
+       count(*) AS total_orders,
+       COALESCE(SUM(total_pence), 0) AS total_pence
+     FROM orders
+     WHERE vendor_id = $1 AND status IN ('paid', 'preparing', 'ready', 'collected')`,
+    [vendorId]
+  )
+  const row = rows[0]
+  return {
+    today_orders: Number(row.today_orders),
+    today_pence: Number(row.today_pence),
+    total_orders: Number(row.total_orders),
+    total_pence: Number(row.total_pence),
+  }
+}
+
+export async function listOrderHistory(vendorId: string, limit = 100): Promise<Order[]> {
+  const { rows } = await pool.query<Order>(
+    `SELECT * FROM orders WHERE vendor_id = $1 ORDER BY created_at DESC LIMIT $2`,
+    [vendorId, limit]
+  )
+  return rows
+}
+
 /** Constant-ish time compare is overkill here, but avoid trivially empty tokens. */
 export function vendorTokenMatches(vendor: Vendor, token: string | null): boolean {
   return Boolean(token) && token === vendor.admin_token
