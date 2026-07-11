@@ -291,6 +291,59 @@ export async function setMenuItemAvailability(
   return rows[0] ?? null
 }
 
+export interface MenuItemPatch {
+  name?: string
+  description?: string
+  price_pence?: number
+  category?: string
+  available?: boolean
+}
+
+export async function updateMenuItem(
+  vendorId: string,
+  itemId: string,
+  patch: MenuItemPatch
+): Promise<MenuItem | null> {
+  const { rows } = await pool.query<MenuItem>(
+    `UPDATE menu_items SET
+       name = COALESCE($3, name),
+       description = COALESCE($4, description),
+       price_pence = COALESCE($5, price_pence),
+       category = COALESCE($6, category),
+       available = COALESCE($7, available)
+     WHERE id = $2 AND vendor_id = $1 RETURNING *`,
+    [
+      vendorId,
+      itemId,
+      patch.name ?? null,
+      patch.description ?? null,
+      patch.price_pence ?? null,
+      patch.category ?? null,
+      patch.available ?? null,
+    ]
+  )
+  return rows[0] ?? null
+}
+
+export async function addMenuItem(vendorId: string, item: NewMenuItem): Promise<MenuItem> {
+  const { rows } = await pool.query<MenuItem>(
+    `INSERT INTO menu_items (vendor_id, name, description, price_pence, category, available, sort)
+     VALUES ($1, $2, $3, $4, $5, true,
+             (SELECT COALESCE(MAX(sort), 0) + 1 FROM menu_items WHERE vendor_id = $1))
+     RETURNING *`,
+    [vendorId, item.name, item.description, item.price_pence, item.category]
+  )
+  return rows[0]
+}
+
+export async function deleteMenuItem(vendorId: string, itemId: string): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    `DELETE FROM menu_items WHERE id = $2 AND vendor_id = $1`,
+    [vendorId, itemId]
+  )
+  return (rowCount ?? 0) > 0
+}
+
 /** Constant-ish time compare is overkill here, but avoid trivially empty tokens. */
 export function vendorTokenMatches(vendor: Vendor, token: string | null): boolean {
   return Boolean(token) && token === vendor.admin_token
