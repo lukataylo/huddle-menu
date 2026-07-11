@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getMarketBySlug, listVendorsWithMenus } from '@/lib/data'
+import { isMollieConfigured } from '@/lib/mollie'
+import { isStripeConfigured } from '@/lib/stripe'
 import MarketBrowser from '../../market/market-browser'
 
 export const dynamic = 'force-dynamic'
@@ -24,6 +26,7 @@ export default async function MarketPage({ params }: Props) {
 
   return (
     <MarketBrowser
+      paymentsEnabled={isStripeConfigured() || isMollieConfigured()}
       market={{ slug: market.slug, name: market.name }}
       stalls={stalls.map(({ vendor, items }) => ({
         vendor: {

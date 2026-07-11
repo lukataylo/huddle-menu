@@ -291,6 +291,28 @@ export async function setMenuItemAvailability(
   return rows[0] ?? null
 }
 
+/** Item ids ranked by how often they've actually been ordered. */
+export async function getPopularItemIds(vendorId: string, limit = 3): Promise<string[]> {
+  const { rows } = await pool.query<{ id: string }>(
+    `SELECT li->>'id' AS id
+     FROM orders o, jsonb_array_elements(o.items) li
+     WHERE o.vendor_id = $1 AND o.status IN ('paid', 'preparing', 'ready', 'collected')
+     GROUP BY 1 HAVING SUM((li->>'quantity')::int) >= 2
+     ORDER BY SUM((li->>'quantity')::int) DESC LIMIT $2`,
+    [vendorId, limit]
+  )
+  return rows.map((row) => row.id)
+}
+
+/** Waiting-group counts for every vendor in one query, for wait-time chips. */
+export async function getWaitingCounts(): Promise<Map<string, number>> {
+  const { rows } = await pool.query<{ vendor_id: string; waiting: string }>(
+    `SELECT vendor_id, count(*) AS waiting FROM orders
+     WHERE status IN ('paid', 'preparing') GROUP BY vendor_id`
+  )
+  return new Map(rows.map((row) => [row.vendor_id, Number(row.waiting)]))
+}
+
 export interface MenuItemPatch {
   name?: string
   description?: string

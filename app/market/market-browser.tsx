@@ -25,15 +25,18 @@ interface Stall {
 export default function MarketBrowser({
   stalls,
   market,
+  paymentsEnabled = false,
 }: {
   stalls: Stall[]
   market?: { slug: string; name: string }
+  paymentsEnabled?: boolean
 }) {
   const router = useRouter()
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [view, setView] = useState<'menu' | 'basket'>('menu')
   const [customerName, setCustomerName] = useState('')
-  const [payMethod, setPayMethod] = useState<PayMethod>('card')
+  // Pay at the till is the default; online payment is opt-in when configured.
+  const [payMethod, setPayMethod] = useState<PayMethod>('cash')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -241,11 +244,17 @@ export default function MarketBrowser({
           </ul>
           {basket.length === 0 && <p className="text-midnight/60">Your basket is empty.</p>}
 
-          <PayMethodToggle
-            value={payMethod}
-            onChange={setPayMethod}
-            cashDetail={stallCount > 1 ? 'Pay each stall when you collect' : 'Cash or card reader when you collect'}
-          />
+          {paymentsEnabled ? (
+            <PayMethodToggle
+              value={payMethod}
+              onChange={setPayMethod}
+              cashDetail={stallCount > 1 ? 'Pay each stall when you collect' : 'Cash or card reader when you collect'}
+            />
+          ) : (
+            <p className="mt-6 rounded-xl border border-line bg-card px-4 py-3 text-sm font-medium text-midnight/70">
+              💷 Pay {stallCount > 1 ? 'each stall' : 'at the till'} when you collect — cash or card.
+            </p>
+          )}
 
           <label className="mt-6 block">
             <span className="mb-1 block text-sm font-medium text-midnight/80">

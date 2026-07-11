@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import QRCode from 'qrcode'
 import { formatMoney } from '@/lib/format'
 import { stallArtSrc } from '@/lib/stall-icon'
 import { rememberOrder } from '@/lib/loyalty'
@@ -58,13 +59,29 @@ export default function OrderTracker({
   initialQueue: QueueInfo
 }) {
   const [order, setOrder] = useState<TrackedOrder>({ ...initialOrder, queue: initialQueue })
+  const [pickupQr, setPickupQr] = useState<string | null>(null)
   const { permission, request } = useNotificationPermission()
+
+  // Pickup QR: the vendor scans it at the counter to complete the order.
+  useEffect(() => {
+    if (order.status !== 'ready' || pickupQr) return
+    const url = `${window.location.origin}/v/${vendor.slug}/serve/${order.id}`
+    QRCode.toDataURL(url, { width: 360, margin: 2, color: { dark: '#1b32a4', light: '#f0fdf4' } })
+      .then(setPickupQr)
+      .catch(() => setPickupQr(null))
+  }, [order.status, order.id, vendor.slug, pickupQr])
 
   useEffect(() => {
     rememberOrder(initialOrder.id, vendor.slug)
   }, [initialOrder.id, vendor.slug])
 
   useReadyBuzzer(order.status === 'ready', `${vendor.name} order #${order.order_number}`)
+  // Pre-buzz when there's at most one group ahead, so the customer starts walking back.
+  useReadyBuzzer(
+    ['paid', 'preparing'].includes(order.status) && (order.queue?.ahead ?? 99) <= 1,
+    `You're nearly at the front at ${vendor.name} — head over now.`,
+    'Almost your turn ⏳'
+  )
 
   useEffect(() => {
     if (order.status === 'collected' || order.status === 'cancelled') return
@@ -131,6 +148,10 @@ export default function OrderTracker({
             </p>
             <p className="mt-1 text-xs font-bold text-midnight/60">now serving</p>
           </div>
+          <div className="flex-1 rounded-2xl border-2 border-line bg-card p-4 text-center">
+            <p className="font-display text-4xl leading-none text-ink">~{(ahead + 1) * 3}</p>
+            <p className="mt-1 text-xs font-bold text-midnight/60">min until ready</p>
+          </div>
         </div>
       )}
 
@@ -175,6 +196,20 @@ export default function OrderTracker({
                 </span>
               </div>
             ))}
+          </div>
+        )}
+
+        {order.status === 'ready' && pickupQr && (
+          <div className="mt-5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={pickupQr}
+              alt="Pickup QR code — the stall scans this to complete your order"
+              className="mx-auto w-44 rounded-xl border-2 border-green-500 bg-green-50 p-1.5"
+            />
+            <p className="mt-2 text-xs font-bold text-midnight/60">
+              Show this at the counter — they scan it to complete your order.
+            </p>
           </div>
         )}
 

@@ -137,6 +137,16 @@ export default function KitchenBoard({
     }
   }, [refreshOrders])
 
+  // Remember the admin token on this device so scanning a customer's pickup
+  // QR (which opens /v/[slug]/serve/[orderId]) can complete the order.
+  useEffect(() => {
+    try {
+      localStorage.setItem(`huddle_admin_${vendor.slug}`, token)
+    } catch {
+      // private browsing — the serve page will ask to use the console instead
+    }
+  }, [vendor.slug, token])
+
   useEffect(() => {
     const url = `${window.location.origin}/v/${vendor.slug}`
     QRCode.toDataURL(url, { width: 480, margin: 2, color: { dark: '#1b32a4', light: '#fbf8ef' } })

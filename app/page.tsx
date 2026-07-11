@@ -1,14 +1,15 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { listMarkets, listVendors } from '@/lib/data'
-import { stallArtSrc } from '@/lib/stall-icon'
+import { getWaitingCounts, listMarkets, listVendors } from '@/lib/data'
 import BottomNav from './bottom-nav'
+import StallDirectory from './stall-directory'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const vendors = await listVendors().catch(() => [])
   const markets = await listMarkets().catch(() => [])
+  const waiting = await getWaitingCounts().catch(() => new Map<string, number>())
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg md:max-w-3xl flex-col bg-paper px-6 pb-28 pt-10 text-midnight">
@@ -59,30 +60,13 @@ export default async function Home() {
               My stamps
             </Link>
           </div>
-          <ul className="mt-3 space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
-            {vendors.map((vendor) => (
-              <li key={vendor.id}>
-                <Link
-                  href={`/v/${vendor.slug}`}
-                  className="flex items-center gap-4 rounded-2xl border-2 border-line bg-card p-4 active:border-ink/50"
-                >
-                  <Image
-                    src={stallArtSrc(vendor.slug)}
-                    alt=""
-                    width={64}
-                    height={64}
-                    unoptimized
-                    className="h-16 w-16 shrink-0 object-contain"
-                  />
-                  <span className="flex-1">
-                    <span className="block text-lg font-extrabold">{vendor.name}</span>
-                    <span className="block text-sm font-medium text-ink">Tap to see the menu</span>
-                  </span>
-                  <span className="text-ink">›</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <StallDirectory
+            stalls={vendors.map((vendor) => ({
+              slug: vendor.slug,
+              name: vendor.name,
+              waiting: waiting.get(vendor.id) ?? 0,
+            }))}
+          />
           {vendors.length > 1 && (
             <Link
               href="/market"

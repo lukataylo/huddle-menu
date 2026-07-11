@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react'
  * device and fire a browser notification (if the customer allowed them).
  * The visual side (flashing/pulsing) is up to the page.
  */
-export function useReadyBuzzer(ready: boolean, message: string) {
+export function useReadyBuzzer(ready: boolean, message: string, title = 'Your food is ready! 🎉') {
   const wasReady = useRef(ready)
 
   useEffect(() => {
@@ -17,14 +17,14 @@ export function useReadyBuzzer(ready: boolean, message: string) {
       }
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
-          new Notification('Your food is ready! 🎉', { body: message })
+          new Notification(title, { body: message })
         } catch {
           // some mobile browsers only allow notifications via service workers
         }
       }
     }
     wasReady.current = ready
-  }, [ready, message])
+  }, [ready, message, title])
 }
 
 /** Button state helper for asking notification permission from a user gesture. */

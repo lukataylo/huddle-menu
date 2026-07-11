@@ -8,7 +8,8 @@ const ALLOWED_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   paid: ['pending'],
   preparing: ['paid'],
   ready: ['preparing', 'paid'],
-  collected: ['ready'],
+  // Scanning a pickup QR serves the order even if "Call up" was never tapped.
+  collected: ['ready', 'preparing', 'paid'],
   cancelled: ['pending', 'paid', 'preparing', 'ready'],
 }
 

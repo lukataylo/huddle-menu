@@ -16,12 +16,25 @@ interface VendorInfo {
   currency: string
 }
 
-export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; items: MenuItem[] }) {
+export default function MenuBrowser({
+  vendor,
+  items,
+  paymentsEnabled = false,
+  queue,
+  popularIds = [],
+}: {
+  vendor: VendorInfo
+  items: MenuItem[]
+  paymentsEnabled?: boolean
+  queue?: { waiting: number; nowServing: number | null }
+  popularIds?: string[]
+}) {
   const router = useRouter()
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [view, setView] = useState<'menu' | 'basket'>('menu')
   const [customerName, setCustomerName] = useState('')
-  const [payMethod, setPayMethod] = useState<PayMethod>('card')
+  // Pay at the till is the default; online payment is opt-in when configured.
+  const [payMethod, setPayMethod] = useState<PayMethod>('cash')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -102,6 +115,15 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
             </p>
           </div>
         </div>
+        {queue && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-card px-3 py-1 text-xs font-bold text-ink">
+            <span aria-hidden>🕐</span>
+            {queue.waiting === 0
+              ? 'No queue right now'
+              : `${queue.waiting} in the queue · ~${queue.waiting * 3} min wait`}
+            {queue.nowServing !== null && ` · now serving #${queue.nowServing}`}
+          </p>
+        )}
       </header>
 
       {view === 'menu' ? (
@@ -122,7 +144,14 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="font-bold leading-snug">{item.name}</p>
+                        <p className="font-bold leading-snug">
+                          {item.name}
+                          {popularIds.includes(item.id) && (
+                            <span className="ml-1.5 rounded-full bg-ink/10 px-2 py-0.5 align-middle text-[10px] font-extrabold uppercase tracking-wide text-ink">
+                              Popular
+                            </span>
+                          )}
+                        </p>
                         {item.description && (
                           <p className="mt-0.5 text-xs font-medium leading-snug text-midnight/60">
                             {item.description}
@@ -215,7 +244,13 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
           </ul>
           {basket.length === 0 && <p className="text-midnight/60">Your basket is empty.</p>}
 
-          <PayMethodToggle value={payMethod} onChange={setPayMethod} />
+          {paymentsEnabled ? (
+            <PayMethodToggle value={payMethod} onChange={setPayMethod} />
+          ) : (
+            <p className="mt-6 rounded-xl border border-line bg-card px-4 py-3 text-sm font-medium text-midnight/70">
+              💷 Pay at the till when you collect — cash or card.
+            </p>
+          )}
 
           <label className="mt-6 block">
             <span className="mb-1 block text-sm font-medium text-midnight/80">
