@@ -35,7 +35,7 @@ export default function OnboardWizard() {
   async function handlePhoto(file: File) {
     setError(null)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Photo must be under 5MB — try a smaller photo.')
+      setError('File must be under 5MB — try a smaller photo or PDF.')
       return
     }
     setExtracting(true)
@@ -119,7 +119,7 @@ export default function OnboardWizard() {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Borough Bao"
               maxLength={80}
-              className="w-full rounded-xl border border-ink/30 bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
+              className="w-full rounded-xl border border-line-strong bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
           </label>
 
@@ -133,7 +133,7 @@ export default function OnboardWizard() {
                   className={`h-11 w-11 rounded-xl border text-xl ${
                     emoji === option
                       ? 'border-ink bg-paper ring-2 ring-ink/20'
-                      : 'border-ink/20 bg-card'
+                      : 'border-line bg-card'
                   }`}
                 >
                   {option}
@@ -144,7 +144,7 @@ export default function OnboardWizard() {
 
           <div className={`space-y-3 ${name.trim() ? '' : 'pointer-events-none opacity-40'}`}>
             <span className="mb-1 block text-sm font-medium text-midnight/80">Your menu</span>
-            <label className="flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 active:border-ink/50">
+            <label className="flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-line bg-card p-4 active:border-ink/50">
               <Image src="/icons/qr.png" alt="" width={56} height={56} className="h-14 w-14 shrink-0" />
               <span className="flex-1">
                 <span className="block text-lg font-extrabold text-ink">
@@ -163,9 +163,28 @@ export default function OnboardWizard() {
                 onChange={(e) => e.target.files?.[0] && handlePhoto(e.target.files[0])}
               />
             </label>
+            <label className="flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-line bg-card p-4 active:border-ink/50">
+              <Image src="/icons/receipt.png" alt="" width={56} height={56} className="h-14 w-14 shrink-0" />
+              <span className="flex-1">
+                <span className="block text-lg font-extrabold text-ink">
+                  {extracting ? 'Reading your menu…' : 'Upload PDF'}
+                </span>
+                <span className="block text-sm font-medium text-midnight/60">
+                  Upload your menu as a PDF and we&apos;ll import it.
+                </span>
+              </span>
+              <span className="text-xl text-ink">›</span>
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                disabled={extracting}
+                onChange={(e) => e.target.files?.[0] && handlePhoto(e.target.files[0])}
+              />
+            </label>
             <button
               onClick={startManually}
-              className="flex w-full items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 text-left active:border-ink/50"
+              className="flex w-full items-center gap-4 rounded-2xl border-2 border-line bg-card p-4 text-left active:border-ink/50"
             >
               <Image src="/icons/menu.png" alt="" width={56} height={56} className="h-14 w-14 shrink-0" />
               <span className="flex-1">
@@ -189,15 +208,15 @@ export default function OnboardWizard() {
           <p className="mb-4 text-sm text-midnight/60">Fix anything we misread, then create your stall.</p>
           <div className="space-y-3">
             {items.map((item, index) => (
-              <div key={index} className="rounded-xl border border-ink/20 bg-card p-3">
+              <div key={index} className="rounded-xl border border-line bg-card p-3">
                 <div className="flex gap-2">
                   <input
                     value={item.name}
                     onChange={(e) => updateItem(index, { name: e.target.value })}
                     placeholder="Item name"
-                    className="min-w-0 flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm font-medium outline-none focus:border-ink"
+                    className="min-w-0 flex-1 rounded-lg border border-line px-3 py-2 text-sm font-medium outline-none focus:border-ink"
                   />
-                  <div className="flex w-24 items-center rounded-lg border border-ink/20 px-2">
+                  <div className="flex w-24 items-center rounded-lg border border-line px-2">
                     <span className="text-sm text-midnight/40">£</span>
                     <input
                       value={(item.price_pence / 100).toFixed(2)}
@@ -225,13 +244,13 @@ export default function OnboardWizard() {
                     value={item.description}
                     onChange={(e) => updateItem(index, { description: e.target.value })}
                     placeholder="Description (optional)"
-                    className="min-w-0 flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-ink"
+                    className="min-w-0 flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-ink"
                   />
                   <input
                     value={item.category}
                     onChange={(e) => updateItem(index, { category: e.target.value })}
                     placeholder="Category"
-                    className="w-28 rounded-lg border border-ink/20 px-3 py-2 text-sm outline-none focus:border-ink"
+                    className="w-28 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-ink"
                   />
                 </div>
               </div>
@@ -277,7 +296,7 @@ export default function OnboardWizard() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-ink/20 bg-card p-5">
+          <div className="rounded-2xl border border-line bg-card p-5">
             <h3 className="text-sm font-semibold uppercase tracking-widest text-midnight/40">
               Your links
             </h3>

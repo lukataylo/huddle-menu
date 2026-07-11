@@ -98,7 +98,7 @@ export default function MultiTracker({ orderIds }: { orderIds: string[] }) {
       {anyActive && permission === 'default' && (
         <button
           onClick={request}
-          className="mt-4 rounded-xl border border-ink/30 bg-paper px-4 py-3 text-sm font-medium text-ink"
+          className="mt-4 rounded-xl border border-line-strong bg-paper px-4 py-3 text-sm font-medium text-ink"
         >
           🔔 Notify me when it&apos;s ready
         </button>
@@ -110,7 +110,7 @@ export default function MultiTracker({ orderIds }: { orderIds: string[] }) {
           <div
             key={order.id}
             className={`rounded-2xl border bg-card p-5 shadow-sm ${
-              order.status === 'ready' ? 'border-green-400 ring-2 ring-green-300' : 'border-ink/20'
+              order.status === 'ready' ? 'border-green-400 ring-2 ring-green-300' : 'border-line'
             }`}
           >
             <div className="flex items-start justify-between gap-3">

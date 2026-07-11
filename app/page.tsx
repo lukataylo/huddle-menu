@@ -31,7 +31,7 @@ export default async function Home() {
               <li key={vendor.id}>
                 <Link
                   href={`/v/${vendor.slug}`}
-                  className="flex items-center gap-4 rounded-2xl border-2 border-ink/20 bg-card p-4 active:border-ink/50"
+                  className="flex items-center gap-4 rounded-2xl border-2 border-line bg-card p-4 active:border-ink/50"
                 >
                   <Image
                     src={stallIconPath(vendor.emoji, vendor.name)}
@@ -60,7 +60,7 @@ export default async function Home() {
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border-2 border-dashed border-ink/30 bg-card p-5">
+      <section className="mt-8 rounded-2xl border-2 border-dashed border-line-strong bg-card p-5">
         <h2 className="font-display text-2xl leading-tight text-ink">
           RUN A FOOD STALL?
         </h2>
@@ -69,7 +69,7 @@ export default async function Home() {
         </p>
         <Link
           href="/start"
-          className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-ink/20 bg-paper p-3 active:border-ink/50"
+          className="mt-4 flex items-center gap-3 rounded-2xl border-2 border-line bg-paper p-3 active:border-ink/50"
         >
           <Image src="/icons/qr.png" alt="" width={44} height={44} className="h-11 w-11 shrink-0" />
           <span className="flex-1">

@@ -81,10 +81,23 @@ export default function OrderTracker({
     >
       <p className="text-center text-sm font-bold text-midnight/60">Your order</p>
 
-      <p className="mt-4 text-center font-display text-3xl leading-none text-ink">ORDER</p>
-      <p className="text-center font-display text-8xl leading-none text-ink">
-        #{order.order_number}
-      </p>
+      <div className="relative mt-4">
+        <span className="absolute left-8 top-4 text-lg text-ink" aria-hidden>
+          ✦
+        </span>
+        <span className="absolute right-12 -top-1 text-xs text-ink" aria-hidden>
+          ✦
+        </span>
+        <span className="absolute right-6 top-14 text-sm text-ink" aria-hidden>
+          ✦
+        </span>
+        <p className="text-center font-display text-4xl leading-none tracking-widest text-ink">
+          ORDER
+        </p>
+        <p className="text-center font-display text-8xl leading-none text-ink">
+          #{order.order_number}
+        </p>
+      </div>
 
       <div
         className={`mt-6 rounded-3xl border-2 bg-card p-6 text-center ${
@@ -98,37 +111,29 @@ export default function OrderTracker({
         )}
 
         {order.status !== 'cancelled' && order.status !== 'pending' && (
-          <div className="mt-6 flex items-center">
+          <div className="mt-6 flex items-start">
             {STEPS.map((step, i) => (
-              <div key={step.key} className="flex flex-1 flex-col items-center">
-                <div className="flex w-full items-center">
-                  <div className={`h-0.5 flex-1 ${i === 0 ? 'invisible' : ''} ${i <= stepIndex ? 'bg-ink' : 'bg-ink/20'}`} />
-                  <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm ${
-                      i < stepIndex
-                        ? 'border-ink bg-ink text-white'
-                        : i === stepIndex
-                          ? 'border-ink bg-card'
-                          : 'border-ink/20 bg-card'
-                    }`}
-                  >
-                    {i < stepIndex ? (
-                      '✓'
-                    ) : (
-                      <Image
-                        src={step.icon}
-                        alt=""
-                        width={22}
-                        height={22}
-                        className={i === stepIndex ? '' : 'opacity-30 grayscale'}
-                      />
-                    )}
-                  </div>
-                  <div className={`h-0.5 flex-1 ${i === STEPS.length - 1 ? 'invisible' : ''} ${i < stepIndex ? 'bg-ink' : 'bg-ink/20'}`} />
-                </div>
+              <div key={step.key} className="flex flex-1 flex-col items-center gap-1.5">
+                {i === stepIndex ? (
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink ring-2 ring-ink ring-offset-2 ring-offset-card">
+                    <Image src={step.icon} alt="" width={24} height={24} className="brightness-0 invert" />
+                  </span>
+                ) : i < stepIndex ? (
+                  <span className="mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
+                    ✓
+                  </span>
+                ) : (
+                  <span className="mt-1.5 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-dashed border-line-strong bg-card">
+                    <Image src={step.icon} alt="" width={18} height={18} className="opacity-30 grayscale" />
+                  </span>
+                )}
                 <span
-                  className={`mt-1.5 text-[11px] font-bold ${
-                    i <= stepIndex ? 'text-ink' : 'text-ink/30'
+                  className={`text-center text-[11px] ${
+                    i === stepIndex
+                      ? 'font-bold text-ink'
+                      : i < stepIndex
+                        ? 'font-semibold text-midnight/70'
+                        : 'font-semibold text-midnight/40'
                   }`}
                 >
                   {step.label}
@@ -141,14 +146,14 @@ export default function OrderTracker({
         {['pending', 'paid', 'preparing'].includes(order.status) && permission === 'default' && (
           <button
             onClick={request}
-            className="mt-5 w-full rounded-2xl border-2 border-ink/30 bg-paper px-4 py-3 text-sm font-bold text-ink"
+            className="mt-5 w-full rounded-2xl border-2 border-line-strong bg-paper px-4 py-3 text-sm font-bold text-ink"
           >
             🔔 Notify me when it&apos;s ready
           </button>
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-between rounded-3xl border-2 border-ink/20 bg-card p-5">
+      <div className="mt-4 flex items-center justify-between rounded-3xl border-2 border-line bg-card p-5">
         <div>
           <h2 className="font-display text-lg text-ink">PICKUP AT</h2>
           <p className="mt-1 text-lg font-extrabold">
@@ -164,7 +169,15 @@ export default function OrderTracker({
         />
       </div>
 
-      <div className="mt-4 rounded-3xl border-2 border-ink/20 bg-card p-5">
+      <div className="mt-3 flex items-center gap-3 rounded-2xl bg-line/40 px-4 py-3">
+        <Image src="/icons/bag.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0" />
+        <div>
+          <p className="text-sm font-bold">No cutlery needed</p>
+          <p className="text-xs font-medium text-midnight/60">Thanks for helping us reduce waste!</p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-3xl border-2 border-line bg-card p-5">
         <h2 className="font-display text-lg text-ink">SUMMARY</h2>
         <ul className="mt-2 space-y-1.5">
           {order.items.map((item) => (
@@ -178,7 +191,7 @@ export default function OrderTracker({
             </li>
           ))}
         </ul>
-        <div className="mt-3 flex justify-between border-t-2 border-dashed border-ink/20 pt-3 font-extrabold">
+        <div className="mt-3 flex justify-between border-t-2 border-dashed border-line pt-3 font-extrabold">
           <span>Total</span>
           <span>{formatMoney(order.total_pence, vendor.currency)}</span>
         </div>

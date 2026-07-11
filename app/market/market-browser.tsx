@@ -102,7 +102,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
         Add
       </button>
     ) : (
-      <div className="flex shrink-0 items-center gap-3 rounded-full border border-ink/30 bg-card px-2 py-1">
+      <div className="flex shrink-0 items-center gap-3 rounded-full border border-line-strong bg-card px-2 py-1">
         <button
           onClick={() => adjust(item.id, -1)}
           className="h-7 w-7 rounded-full text-lg font-semibold text-ink active:bg-ink/10"
@@ -124,7 +124,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper text-midnight">
-      <header className="sticky top-0 z-10 border-b border-ink/20 bg-paper/95 px-5 py-4 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-line bg-paper/95 px-5 py-4 backdrop-blur">
         <div className="flex items-center gap-2">
           <Image src="/icons/market.png" alt="" width={40} height={40} className="h-10 w-10" />
           <h1 className="font-display text-3xl leading-none text-ink">HUDDLE MARKET</h1>
@@ -156,7 +156,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
                   <li
                     key={item.id}
                     className={`rounded-xl border bg-card p-4 shadow-sm ${
-                      item.available ? 'border-ink/20' : 'border-ink/10 opacity-50'
+                      item.available ? 'border-line' : 'border-line/70 opacity-50'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -192,7 +192,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
             {basket.map(({ item, vendor, quantity }) => (
               <li
                 key={item.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-ink/20 bg-card p-4 shadow-sm"
+                className="flex items-center justify-between gap-3 rounded-xl border border-line bg-card p-4 shadow-sm"
               >
                 <div>
                   <p className="font-medium">{item.name}</p>
@@ -200,7 +200,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
                     {vendor.emoji} {vendor.name} · {formatMoney(item.price_pence * quantity, vendor.currency)}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 rounded-full border border-ink/30 px-2 py-1">
+                <div className="flex items-center gap-3 rounded-full border border-line-strong px-2 py-1">
                   <button
                     onClick={() => adjust(item.id, -1)}
                     className="h-7 w-7 rounded-full text-lg font-semibold text-ink active:bg-ink/10"
@@ -231,7 +231,7 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="e.g. Sam — or leave blank"
               maxLength={60}
-              className="w-full rounded-xl border border-ink/30 bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
+              className="w-full rounded-xl border border-line-strong bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
           </label>
 
@@ -240,15 +240,18 @@ export default function MarketBrowser({ stalls }: { stalls: Stall[] }) {
       )}
 
       {totalCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg border-t border-ink/20 bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg border-t border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {view === 'menu' ? (
             <button
               onClick={() => setView('basket')}
-              className="flex w-full items-center justify-between rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep"
+              className="flex w-full items-center gap-3 rounded-2xl bg-ink px-5 py-3.5 font-bold text-white active:bg-ink-deep"
             >
-              <span>
-                View basket · {totalCount} item{totalCount === 1 ? '' : 's'}
-                {stallCount > 1 ? ` · ${stallCount} stalls` : ''}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M6 8h12l-1 12H7L6 8z" />
+                <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+              </svg>
+              <span className="flex-1 text-left">
+                View Cart ({totalCount}){stallCount > 1 ? ` · ${stallCount} stalls` : ''}
               </span>
               <span>{formatMoney(totalPence, currency)}</span>
             </button>

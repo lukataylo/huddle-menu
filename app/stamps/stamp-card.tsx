@@ -70,7 +70,7 @@ export default function StampCard() {
       {orders === null && <p className="mt-8 text-midnight/40">Loading your orders…</p>}
 
       {orders !== null && stamped.length === 0 && (
-        <div className="mt-10 rounded-2xl border border-dashed border-ink/30 p-8 text-center">
+        <div className="mt-10 rounded-2xl border border-dashed border-line-strong p-8 text-center">
           <Image src="/icons/heart.png" alt="" width={64} height={64} className="mx-auto h-16 w-16" />
           <p className="mt-3 font-medium">No stamps yet</p>
           <p className="mt-1 text-sm text-midnight/60">Place your first order and it&apos;ll show up here.</p>
@@ -90,7 +90,7 @@ export default function StampCard() {
         return (
           <section
             key={vendor.slug}
-            className="mt-6 rounded-2xl border border-ink/20 bg-card p-5 shadow-sm"
+            className="mt-6 rounded-2xl border border-line bg-card p-5 shadow-sm"
           >
             <div className="flex items-baseline justify-between">
               <h2 className="font-bold">
@@ -107,7 +107,7 @@ export default function StampCard() {
                   className={`flex aspect-square items-center justify-center rounded-full border-2 text-lg ${
                     i < onCard
                       ? 'border-ink bg-ink/10'
-                      : 'border-dashed border-ink/20 text-ink/30'
+                      : 'border-dashed border-line text-ink/30'
                   }`}
                 >
                   {i < onCard ? vendor.emoji : i + 1}
@@ -125,9 +125,9 @@ export default function StampCard() {
       })}
 
       {stamped.length > 0 && (
-        <section className="mt-6 rounded-2xl border border-ink/20 bg-card p-5 shadow-sm">
+        <section className="mt-6 rounded-2xl border border-line bg-card p-5 shadow-sm">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-midnight/40">History</h2>
-          <ul className="mt-3 divide-y divide-ink/10">
+          <ul className="mt-3 divide-y divide-line/70">
             {stamped.map((order) => (
               <li key={order.id} className="flex items-center justify-between py-2.5 text-sm">
                 <div>
@@ -145,7 +145,7 @@ export default function StampCard() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 border-t border-ink/10 pt-3 text-right text-sm font-bold">
+          <p className="mt-3 border-t border-line/70 pt-3 text-right text-sm font-bold">
             Total spent:{' '}
             {[...totalSpentByCurrency.entries()]
               .map(([currency, pence]) => formatMoney(pence, currency))

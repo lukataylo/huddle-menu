@@ -126,7 +126,7 @@ export default function KitchenBoard({
 
   return (
     <div className="min-h-dvh bg-paper text-midnight">
-      <header className="sticky top-0 z-10 border-b-2 border-ink/15 bg-card px-5 py-3">
+      <header className="sticky top-0 z-10 border-b-2 border-line bg-card px-5 py-3">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <h1 className="flex items-center gap-2 font-display text-2xl leading-none text-ink">
             <Image
@@ -138,7 +138,7 @@ export default function KitchenBoard({
             />
             {vendor.name.toUpperCase()}
           </h1>
-          <nav className="flex gap-1 rounded-xl border-2 border-ink/15 bg-paper p-1 text-sm font-bold">
+          <nav className="flex gap-1 rounded-xl border-2 border-line bg-paper p-1 text-sm font-bold">
             {(['orders', 'menu', 'qr'] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -169,7 +169,7 @@ export default function KitchenBoard({
                   key={t}
                   onClick={() => setOrderTab(t)}
                   className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold ${
-                    orderTab === t ? 'bg-ink text-white' : 'border-2 border-ink/20 bg-card text-ink'
+                    orderTab === t ? 'bg-ink text-white' : 'border-2 border-line bg-card text-ink'
                   }`}
                 >
                   {ORDER_TABS[t].label}
@@ -194,7 +194,7 @@ export default function KitchenBoard({
                   const action = NEXT_ACTION[order.status]
                   const badge = STATUS_BADGE[order.status]
                   return (
-                    <div key={order.id} className="rounded-2xl border-2 border-ink/20 bg-card p-4">
+                    <div key={order.id} className="rounded-2xl border-2 border-line bg-card p-4">
                       <div className="flex items-start justify-between">
                         <div>
                           <span
@@ -232,7 +232,7 @@ export default function KitchenBoard({
                         {['pending', 'paid'].includes(order.status) && (
                           <button
                             onClick={() => moveOrder(order.id, 'cancelled')}
-                            className="rounded-xl border-2 border-ink/20 px-3 py-2.5 text-sm font-bold text-midnight/60 active:bg-paper"
+                            className="rounded-xl border-2 border-line px-3 py-2.5 text-sm font-bold text-midnight/60 active:bg-paper"
                           >
                             Cancel
                           </button>
@@ -255,7 +255,7 @@ export default function KitchenBoard({
             {menuItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between rounded-2xl border-2 border-ink/20 bg-card p-4"
+                className="flex items-center justify-between rounded-2xl border-2 border-line bg-card p-4"
               >
                 <div>
                   <p className={`font-extrabold ${item.available ? '' : 'text-midnight/40 line-through'}`}>

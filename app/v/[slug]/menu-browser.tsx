@@ -80,7 +80,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-paper text-midnight">
-      <header className="sticky top-0 z-10 border-b border-ink/20 bg-paper/95 px-5 py-4 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-line bg-paper/95 px-5 py-4 backdrop-blur">
         <div className="flex items-center gap-3">
           <Image
             src={stallIconPath(vendor.emoji, vendor.name)}
@@ -104,60 +104,63 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
         <main className="flex-1 px-5 pb-36 pt-4">
           {categories.map(([category, categoryItems]) => (
             <section key={category} className="mb-6">
-              <h2 className="mb-2 font-display text-xl uppercase text-ink">{category}</h2>
-              <ul className="space-y-2">
+              <h2 className="mb-1 font-display text-xl uppercase tracking-widest text-ink">
+                {category}
+              </h2>
+              <ul>
                 {categoryItems.map((item) => {
                   const quantity = quantities[item.id] ?? 0
                   return (
                     <li
                       key={item.id}
-                      className={`rounded-xl border bg-card p-4 shadow-sm ${
-                        item.available ? 'border-ink/20' : 'border-ink/10 opacity-50'
+                      className={`flex items-center gap-3 border-b border-line/70 py-3.5 ${
+                        item.available ? '' : 'opacity-50'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-medium leading-snug">{item.name}</p>
-                          {item.description && (
-                            <p className="mt-0.5 text-sm leading-snug text-midnight/60">{item.description}</p>
-                          )}
-                          <p className="mt-1 text-sm font-semibold text-midnight/80">
-                            {formatMoney(item.price_pence, vendor.currency)}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold leading-snug">{item.name}</p>
+                        {item.description && (
+                          <p className="mt-0.5 text-xs font-medium leading-snug text-midnight/60">
+                            {item.description}
                           </p>
-                        </div>
-                        {item.available ? (
-                          quantity === 0 ? (
-                            <button
-                              onClick={() => adjust(item.id, 1)}
-                              className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white active:bg-ink-deep"
-                            >
-                              Add
-                            </button>
-                          ) : (
-                            <div className="flex shrink-0 items-center gap-3 rounded-full border border-ink/30 bg-card px-2 py-1">
-                              <button
-                                onClick={() => adjust(item.id, -1)}
-                                className="h-7 w-7 rounded-full text-lg font-semibold text-ink active:bg-ink/10"
-                                aria-label={`Remove one ${item.name}`}
-                              >
-                                −
-                              </button>
-                              <span className="min-w-4 text-center text-sm font-bold">{quantity}</span>
-                              <button
-                                onClick={() => adjust(item.id, 1)}
-                                className="h-7 w-7 rounded-full text-lg font-semibold text-ink active:bg-ink/10"
-                                aria-label={`Add one ${item.name}`}
-                              >
-                                +
-                              </button>
-                            </div>
-                          )
-                        ) : (
-                          <span className="shrink-0 rounded-full bg-ink/10 px-3 py-1.5 text-xs font-semibold text-midnight/60">
-                            Sold out
-                          </span>
                         )}
                       </div>
+                      <span className="text-sm font-bold">
+                        {formatMoney(item.price_pence, vendor.currency)}
+                      </span>
+                      {item.available ? (
+                        quantity === 0 ? (
+                          <button
+                            onClick={() => adjust(item.id, 1)}
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-lg leading-none text-white active:bg-ink-deep"
+                            aria-label={`Add ${item.name}`}
+                          >
+                            +
+                          </button>
+                        ) : (
+                          <div className="flex shrink-0 items-center gap-2 rounded-full border border-line-strong bg-card px-1.5 py-1">
+                            <button
+                              onClick={() => adjust(item.id, -1)}
+                              className="flex h-6 w-6 items-center justify-center rounded-full text-base font-bold text-ink active:bg-ink/10"
+                              aria-label={`Remove one ${item.name}`}
+                            >
+                              −
+                            </button>
+                            <span className="min-w-4 text-center text-sm font-bold">{quantity}</span>
+                            <button
+                              onClick={() => adjust(item.id, 1)}
+                              className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-base font-bold text-white active:bg-ink-deep"
+                              aria-label={`Add one ${item.name}`}
+                            >
+                              +
+                            </button>
+                          </div>
+                        )
+                      ) : (
+                        <span className="shrink-0 rounded-full bg-line/60 px-3 py-1.5 text-[11px] font-bold text-midnight/60">
+                          Sold out
+                        </span>
+                      )}
                     </li>
                   )
                 })}
@@ -175,7 +178,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
             {basket.map(({ item, quantity }) => (
               <li
                 key={item.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-ink/20 bg-card p-4 shadow-sm"
+                className="flex items-center justify-between gap-3 rounded-xl border border-line bg-card p-4 shadow-sm"
               >
                 <div>
                   <p className="font-medium">{item.name}</p>
@@ -183,7 +186,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
                     {formatMoney(item.price_pence * quantity, vendor.currency)}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 rounded-full border border-ink/30 px-2 py-1">
+                <div className="flex items-center gap-3 rounded-full border border-line-strong px-2 py-1">
                   <button
                     onClick={() => adjust(item.id, -1)}
                     className="h-7 w-7 rounded-full text-lg font-semibold text-ink active:bg-ink/10"
@@ -214,7 +217,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="e.g. Sam — or leave blank"
               maxLength={60}
-              className="w-full rounded-xl border border-ink/30 bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
+              className="w-full rounded-xl border border-line-strong bg-card px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
           </label>
 
@@ -225,15 +228,17 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
       )}
 
       {totalCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg border-t border-ink/20 bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg border-t border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {view === 'menu' ? (
             <button
               onClick={() => setView('basket')}
-              className="flex w-full items-center justify-between rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep"
+              className="flex w-full items-center gap-3 rounded-2xl bg-ink px-5 py-3.5 font-bold text-white active:bg-ink-deep"
             >
-              <span>
-                View basket · {totalCount} item{totalCount === 1 ? '' : 's'}
-              </span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M6 8h12l-1 12H7L6 8z" />
+                <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+              </svg>
+              <span className="flex-1 text-left">View Cart ({totalCount})</span>
               <span>{formatMoney(totalPence, vendor.currency)}</span>
             </button>
           ) : (
