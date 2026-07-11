@@ -13,8 +13,12 @@ const STYLE = [
   'in the style of a charming market chalkboard sketch.',
 ].join(' ')
 
+function artKey(): string | undefined {
+  return process.env.OPENAI_KEY ?? process.env.OPENAI_API_KEY
+}
+
 export function isArtConfigured(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY)
+  return Boolean(artKey())
 }
 
 /**
@@ -27,7 +31,7 @@ export async function generateAndSaveStallArt(vendor: Vendor): Promise<void> {
     const res = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${artKey()}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

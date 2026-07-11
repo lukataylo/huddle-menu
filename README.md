@@ -30,16 +30,21 @@ npm run dev
 | Variable | Required | Purpose |
 |---|---|---|
 | `DATABASE_URL` | yes | Postgres connection string |
-| `MOLLIE_API_KEY` | no | Enables real payments. Without it, orders are created as already paid (dev mode). |
+| `STRIPE_SECRET_KEY` | no | Enables Stripe Checkout for online card payments. Takes priority over Mollie when both are set. |
+| `MOLLIE_API_KEY` | no | Enables Mollie payments (used when Stripe is not configured). |
 | `ANTHROPIC_API_KEY` | no | Enables AI menu-photo extraction on `/start`. Without it, vendors type their menu in manually. |
-| `APP_URL` | production | Public base URL, used for Mollie redirect/webhook URLs |
+| `OPENAI_KEY` | no | Enables AI stall art (gpt-image-2 logo drawn at signup; `npm run art:backfill` for existing stalls). `OPENAI_API_KEY` works too. |
+| `APP_URL` | production | Public base URL, used for payment redirect/webhook URLs |
 
 ## How payments flow
 
-1. Checkout creates order(s) with status `pending` and a single Mollie payment (metadata carries the order ids).
-2. Mollie calls `/api/mollie/webhook`; the order(s) flip to `paid`.
+Customers choose at checkout: **Pay online** or **At the stall**.
+
+1. Pay online creates order(s) with status `pending` and a single payment covering the basket — Stripe Checkout when `STRIPE_SECRET_KEY` is set, otherwise Mollie.
+2. Stripe: the success redirect hits `/api/stripe/confirm`, which retrieves the session from Stripe's API and flips the order(s) to `paid`. Mollie: `/api/mollie/webhook` does the same.
 3. The kitchen advances `paid → preparing → ready → collected`; the customer's status page polls and buzzes on `ready`.
-4. Without `MOLLIE_API_KEY`, step 1 creates orders as `paid` directly — useful for local dev and cash-only stalls (the kitchen also has a "Mark paid" button for pending orders).
+4. **At the stall**: order(s) are created `pending` with no payment attached; the customer pays cash or on the stall's own card reader and the kitchen taps "Mark paid".
+5. With neither payment provider configured, online orders are created as `paid` directly (local dev mode).
 
 ## Security model
 

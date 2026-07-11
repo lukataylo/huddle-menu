@@ -17,6 +17,7 @@ interface TrackedOrder {
   items: OrderLineItem[]
   total_pence: number
   status: OrderStatus
+  awaiting_cash?: boolean
   vendor: { slug: string; name: string; emoji: string; currency: string }
 }
 
@@ -133,7 +134,9 @@ export default function MultiTracker({ orderIds }: { orderIds: string[] }) {
               <span
                 className={`rounded-full px-3 py-1.5 text-xs font-bold ${STATUS_STYLES[order.status]}`}
               >
-                {STATUS_LABEL[order.status]}
+                {order.status === 'pending' && order.awaiting_cash
+                  ? 'Pay at the stall 💷'
+                  : STATUS_LABEL[order.status]}
               </span>
             </div>
             <ul className="mt-3 space-y-0.5 text-sm text-midnight/70">

@@ -29,6 +29,7 @@ export default async function OrderPage({
         items: order.items,
         total_pence: order.total_pence,
         status: order.status,
+        awaiting_cash: order.status === 'pending' && !order.mollie_payment_id,
       }}
     />
   )

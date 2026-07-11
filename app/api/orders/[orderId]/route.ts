@@ -19,6 +19,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orderId
     items: order.items,
     total_pence: order.total_pence,
     status: order.status,
+    // Pending with no Mollie payment attached means the customer chose cash.
+    awaiting_cash: order.status === 'pending' && !order.mollie_payment_id,
     created_at: order.created_at,
     vendor: {
       slug: order.vendor_slug,

@@ -23,6 +23,12 @@ interface TrackedOrder {
   items: OrderLineItem[]
   total_pence: number
   status: OrderStatus
+  awaiting_cash?: boolean
+}
+
+const CASH_PENDING_COPY = {
+  title: 'Pay at the stall 💷',
+  detail: 'Show this screen and pay at the counter, cash or card. The kitchen starts as soon as you have.',
 }
 
 const STATUS_COPY: Record<OrderStatus, { title: string; detail: string }> = {
@@ -70,7 +76,8 @@ export default function OrderTracker({
     return () => clearInterval(interval)
   }, [order.id, order.status])
 
-  const copy = STATUS_COPY[order.status]
+  const copy =
+    order.status === 'pending' && order.awaiting_cash ? CASH_PENDING_COPY : STATUS_COPY[order.status]
   const stepIndex = STEPS.findIndex((step) => step.key === order.status)
 
   return (

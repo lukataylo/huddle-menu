@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { formatMoney } from '@/lib/format'
 import { stallArtSrc } from '@/lib/stall-icon'
+import PayMethodToggle, { type PayMethod } from '../../pay-method-toggle'
 import { rememberOrder } from '@/lib/loyalty'
 import type { MenuItem } from '@/lib/types'
 
@@ -20,6 +21,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [view, setView] = useState<'menu' | 'basket'>('menu')
   const [customerName, setCustomerName] = useState('')
+  const [payMethod, setPayMethod] = useState<PayMethod>('card')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,6 +63,7 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
         body: JSON.stringify({
           slug: vendor.slug,
           customerName: customerName.trim(),
+          payMethod,
           items: basket.map(({ item, quantity }) => ({ id: item.id, quantity })),
         }),
       })
@@ -209,6 +212,8 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
           </ul>
           {basket.length === 0 && <p className="text-midnight/60">Your basket is empty.</p>}
 
+          <PayMethodToggle value={payMethod} onChange={setPayMethod} />
+
           <label className="mt-6 block">
             <span className="mb-1 block text-sm font-medium text-midnight/80">
               Name for the order <span className="text-midnight/50">(optional)</span>
@@ -248,7 +253,15 @@ export default function MenuBrowser({ vendor, items }: { vendor: VendorInfo; ite
               disabled={submitting || basket.length === 0}
               className="flex w-full items-center justify-between rounded-xl bg-ink px-5 py-3.5 font-semibold text-white active:bg-ink-deep disabled:bg-ink/20"
             >
-              <span>{submitting ? 'Starting payment…' : 'Pay now'}</span>
+              <span>
+                {submitting
+                  ? payMethod === 'cash'
+                    ? 'Placing order…'
+                    : 'Starting payment…'
+                  : payMethod === 'cash'
+                    ? 'Place order'
+                    : 'Pay now'}
+              </span>
               <span>{formatMoney(totalPence, vendor.currency)}</span>
             </button>
           )}
