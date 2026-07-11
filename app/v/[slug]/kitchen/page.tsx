@@ -39,6 +39,7 @@ export default async function KitchenPage({
       vendor={{ slug: vendor.slug, name: vendor.name, emoji: vendor.emoji, currency: vendor.currency }}
       token={token!}
       initialMenuItems={menuItems}
+      initialOpen={vendor.open}
     />
   )
 }

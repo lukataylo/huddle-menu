@@ -50,10 +50,12 @@ export default function KitchenBoard({
   vendor,
   token,
   initialMenuItems,
+  initialOpen = true,
 }: {
   vendor: VendorInfo
   token: string
   initialMenuItems: MenuItem[]
+  initialOpen?: boolean
 }) {
   const [tab, setTab] = useState<Tab>('orders')
   const [orderTab, setOrderTab] = useState<OrderTab>('waiting')
@@ -63,6 +65,7 @@ export default function KitchenBoard({
   const [menuUrl, setMenuUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [soundOn, setSoundOn] = useState(true)
+  const [isOpen, setIsOpen] = useState(initialOpen)
   // Menu editing: which item is being edited ('new' = adding), and its draft.
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<ItemDraft>({ name: '', description: '', price: '', category: 'Menu' })
@@ -171,6 +174,17 @@ export default function KitchenBoard({
     }
   }
 
+  async function toggleOpen() {
+    const next = !isOpen
+    setIsOpen(next)
+    const res = await fetch(`${apiBase}?token=${encodeURIComponent(token)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ open: next }),
+    })
+    if (!res.ok) setIsOpen(!next)
+  }
+
   function startEditing(item: MenuItem) {
     setDraft({
       name: item.name,
@@ -275,6 +289,16 @@ export default function KitchenBoard({
             {vendor.name.toUpperCase()}
           </h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={toggleOpen}
+              className={`rounded-xl border-2 px-3 py-1.5 text-sm font-extrabold ${
+                isOpen
+                  ? 'border-green-600 bg-green-50 text-green-700'
+                  : 'border-red-300 bg-red-50 text-red-700'
+              }`}
+            >
+              {isOpen ? '● Open' : '● Closed'}
+            </button>
             <button
               onClick={() => {
                 setSoundOn((prev) => {

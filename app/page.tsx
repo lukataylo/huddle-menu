@@ -65,6 +65,7 @@ export default async function Home() {
               slug: vendor.slug,
               name: vendor.name,
               waiting: waiting.get(vendor.id) ?? 0,
+              open: vendor.open,
             }))}
           />
           {vendors.length > 1 && (
@@ -96,6 +97,12 @@ export default async function Home() {
           </span>
           <span className="text-ink">›</span>
         </Link>
+        <p className="mt-3 text-center text-sm text-midnight/60">
+          Already set up?{' '}
+          <Link href="/dashboard" className="font-bold text-ink underline">
+            Open your dashboard
+          </Link>
+        </p>
       </section>
 
       <BottomNav />

@@ -41,6 +41,7 @@ const STATEMENTS = [
     created_at timestamptz NOT NULL DEFAULT now()
   );`,
   `ALTER TABLE vendors ADD COLUMN IF NOT EXISTS market_id uuid REFERENCES markets(id) ON DELETE SET NULL;`,
+  `ALTER TABLE vendors ADD COLUMN IF NOT EXISTS open boolean NOT NULL DEFAULT true;`,
   `CREATE TABLE IF NOT EXISTS vendor_art (
     vendor_id uuid PRIMARY KEY REFERENCES vendors(id) ON DELETE CASCADE,
     png bytea NOT NULL,

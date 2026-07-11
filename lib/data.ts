@@ -370,3 +370,18 @@ export async function deleteMenuItem(vendorId: string, itemId: string): Promise<
 export function vendorTokenMatches(vendor: Vendor, token: string | null): boolean {
   return Boolean(token) && token === vendor.admin_token
 }
+
+/** Login by stall key alone: the token is unique enough to identify the vendor. */
+export async function getVendorByToken(token: string): Promise<Vendor | null> {
+  if (!token) return null
+  const { rows } = await pool.query<Vendor>(`SELECT * FROM vendors WHERE admin_token = $1`, [token])
+  return rows[0] ?? null
+}
+
+export async function setVendorOpen(vendorId: string, open: boolean): Promise<Vendor | null> {
+  const { rows } = await pool.query<Vendor>(
+    `UPDATE vendors SET open = $2 WHERE id = $1 RETURNING *`,
+    [vendorId, open]
+  )
+  return rows[0] ?? null
+}

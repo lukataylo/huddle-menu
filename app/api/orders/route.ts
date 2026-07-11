@@ -49,6 +49,9 @@ export async function POST(req: Request) {
   if (!vendor) {
     return NextResponse.json({ error: 'Vendor not found' }, { status: 404 })
   }
+  if (!vendor.open) {
+    return NextResponse.json({ error: 'This stall is closed right now.' }, { status: 409 })
+  }
 
   // Re-price everything server-side against currently-available items.
   let lineItems: OrderLineItem[] = []

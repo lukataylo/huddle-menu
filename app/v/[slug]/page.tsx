@@ -28,7 +28,13 @@ export default async function VendorMenuPage({ params }: { params: Promise<{ slu
 
   return (
     <MenuBrowser
-      vendor={{ slug: vendor.slug, name: vendor.name, emoji: vendor.emoji, currency: vendor.currency }}
+      vendor={{
+        slug: vendor.slug,
+        name: vendor.name,
+        emoji: vendor.emoji,
+        currency: vendor.currency,
+        open: vendor.open,
+      }}
       items={items}
       queue={{ waiting: queue.waiting_count, nowServing: queue.now_serving }}
       popularIds={popularIds}

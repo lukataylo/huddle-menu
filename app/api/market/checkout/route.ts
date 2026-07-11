@@ -48,6 +48,13 @@ export async function POST(req: Request) {
   const { rows: vendors } = await pool.query<Vendor>(`SELECT * FROM vendors WHERE id = ANY($1)`, [
     [...new Set(menuItems.map((item) => item.vendor_id))],
   ])
+  const closed = vendors.filter((vendor) => !vendor.open)
+  if (closed.length > 0) {
+    return NextResponse.json(
+      { error: `${closed.map((v) => v.name).join(', ')} just closed. Please refresh the menu.` },
+      { status: 409 }
+    )
+  }
   // A market-scoped basket may only contain that market's stalls.
   if (marketSlug) {
     const market = await getMarketBySlug(marketSlug)

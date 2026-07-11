@@ -31,6 +31,7 @@ export default async function MarketPage({ params }: Props) {
           name: vendor.name,
           emoji: vendor.emoji,
           currency: vendor.currency,
+          open: vendor.open,
         },
         items,
       }))}

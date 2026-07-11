@@ -14,6 +14,7 @@ export interface Vendor {
   currency: string
   next_order_number: number
   market_id: string | null
+  open: boolean
   created_at: string
 }
 

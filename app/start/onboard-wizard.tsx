@@ -396,6 +396,13 @@ export default function OnboardWizard({ markets }: { markets: MarketOption[] }) 
               ⚠️ Save the kitchen link somewhere safe — it&apos;s your only way to manage orders.
               Anyone with it can run your stall.
             </p>
+            <p className="mt-2 text-sm text-midnight/70">
+              Your stall key (this is your login at{' '}
+              <Link href="/dashboard" className="font-medium text-ink underline">
+                /dashboard
+              </Link>
+              ): <code className="break-all rounded bg-ink/10 px-1 font-mono text-xs">{created.adminToken}</code>
+            </p>
           </div>
         </div>
       )}

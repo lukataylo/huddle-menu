@@ -13,6 +13,7 @@ interface VendorInfo {
   name: string
   emoji: string
   currency: string
+  open?: boolean
 }
 
 export default function MenuBrowser({
@@ -110,7 +111,12 @@ export default function MenuBrowser({
             </p>
           </div>
         </div>
-        {queue && (
+        {vendor.open === false && (
+          <p className="mt-2 rounded-xl border-2 border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
+            Closed right now — check back later.
+          </p>
+        )}
+        {vendor.open !== false && queue && (
           <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-card px-3 py-1 text-xs font-bold text-ink">
             <span aria-hidden>🕐</span>
             {queue.waiting === 0
@@ -262,6 +268,7 @@ export default function MenuBrowser({
         </main>
       )}
 
+      {vendor.open !== false && (
       <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-lg md:max-w-3xl border-t border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {view === 'menu' ? (
           totalCount > 0 ? (
@@ -300,6 +307,7 @@ export default function MenuBrowser({
           </button>
         )}
       </div>
+      )}
     </div>
   )
 }

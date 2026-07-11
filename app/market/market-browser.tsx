@@ -14,6 +14,7 @@ interface VendorInfo {
   name: string
   emoji: string
   currency: string
+  open?: boolean
 }
 
 interface Stall {
@@ -167,6 +168,11 @@ export default function MarketBrowser({
                   className="h-11 w-11 shrink-0 object-contain"
                 />
                 {vendor.name.toUpperCase()}
+                {vendor.open === false && (
+                  <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-extrabold tracking-wide text-red-700">
+                    CLOSED
+                  </span>
+                )}
               </h2>
               <ul className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
                 {items.map((item) => (
@@ -186,7 +192,13 @@ export default function MarketBrowser({
                           {formatMoney(item.price_pence, vendor.currency)}
                         </p>
                       </div>
-                      {stepper(item)}
+                      {vendor.open === false ? (
+                        <span className="shrink-0 rounded-full bg-ink/10 px-3 py-1.5 text-xs font-semibold text-midnight/60">
+                          Closed
+                        </span>
+                      ) : (
+                        stepper(item)
+                      )}
                     </div>
                   </li>
                 ))}

@@ -9,6 +9,7 @@ export interface DirectoryStall {
   slug: string
   name: string
   waiting: number
+  open: boolean
 }
 
 // Searchable stall list, sorted by shortest wait.
@@ -19,7 +20,7 @@ export default function StallDirectory({ stalls }: { stalls: DirectoryStall[] })
     const q = query.trim().toLowerCase()
     return stalls
       .filter((stall) => !q || stall.name.toLowerCase().includes(q))
-      .sort((a, b) => a.waiting - b.waiting)
+      .sort((a, b) => Number(b.open) - Number(a.open) || a.waiting - b.waiting)
   }, [stalls, query])
 
   return (
@@ -50,12 +51,14 @@ export default function StallDirectory({ stalls }: { stalls: DirectoryStall[] })
                 <span className="block text-lg font-extrabold">{stall.name}</span>
                 <span
                   className={`block text-sm font-bold ${
-                    stall.waiting === 0 ? 'text-green-700' : 'text-ink'
+                    !stall.open ? 'text-red-600' : stall.waiting === 0 ? 'text-green-700' : 'text-ink'
                   }`}
                 >
-                  {stall.waiting === 0
-                    ? 'No queue — walk right up'
-                    : `~${stall.waiting * 3} min wait · ${stall.waiting} in queue`}
+                  {!stall.open
+                    ? 'Closed right now'
+                    : stall.waiting === 0
+                      ? 'No queue — walk right up'
+                      : `~${stall.waiting * 3} min wait · ${stall.waiting} in queue`}
                 </span>
               </span>
               <span className="text-ink">›</span>
